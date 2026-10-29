@@ -475,8 +475,8 @@ a { color: inherit; }
   color: transparent;
   text-shadow: none;
 }
-.hl-swash { position: absolute; left: -5%; right: -18%; bottom: 0.28em; width: 123%; height: 0.4em; overflow: visible; pointer-events: none; }
-.hl-heart { position: absolute; right: -0.12em; top: 0.37em; width: 0.5em; height: 0.45em; overflow: visible; pointer-events: none; }
+.hl-swash { position: absolute; left: 10%; bottom: 0.2em; width: 108%; height: auto; aspect-ratio: 8; overflow: visible; pointer-events: none; }
+.hl-heart { position: absolute; right: -0.18em; top: 0.2em; width: 0.62em; height: 0.55em; overflow: visible; pointer-events: none; }
 .blob {
   display: block;
   border-radius: 48% 52% 45% 55% / 60% 45% 55% 40%;
@@ -559,6 +559,7 @@ a { color: inherit; }
 }
 .ribbon svg * { pointer-events: visiblePainted; }
 .ribbon > svg { display: block; overflow: visible; }
+.ribbon > svg + svg { position: absolute; inset: 0; }
 .ribbon-text { font-family: var(--font-body); font-weight: 400; fill: #6b3a35; letter-spacing: 0.02em; white-space: pre; }
 
 /* ---------- Gallery ---------- */
@@ -710,6 +711,8 @@ body:has(.modal-backdrop) .falling { display: none; }
   width: min(820px, 100%);
   max-height: calc(100svh - 32px);
   overflow: auto;
+  /* scrolling to the end of a long letter shouldn't carry on into the page */
+  overscroll-behavior: contain;
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: 24px;
@@ -959,7 +962,7 @@ body:has(.modal-backdrop) .falling { display: none; }
   .letter-text { font-size: 18px; line-height: 39px; }
   .hero-d3, .hero-d5 { display: none; }
   .hero-petal-extra { display: none; }
-      .hl-heart { right: -0.05em; }
+      .hl-heart { right: -0.1em; }
   .card { padding: 10px 10px 14px; }
   .card-name { font-size: 16px; }
   .card-tag { font-size: 13px; }
