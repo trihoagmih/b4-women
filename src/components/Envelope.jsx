@@ -1,8 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { Star, Sparkle } from './Doodles.jsx'
 
-const INK = '#2b2321'
+const INK = '#4a2c25'
+const EDGE = 16 // keep the note this far from the viewport edges
 const CODE = [2, 0, 1, 0] // 20/10
+
+// The hint note plays hard to get: it hops somewhere else on screen once per
+// taunt, and only lets itself be read after that.
+const NOTE_TAUNTS = [
+  'Catch me if you can~ 😜',
+  'Hụt rồi nha! Nhanh tay lên nàooo 🏃‍♀️💨',
+  'Hơi bị lì đó nha... nhưng vẫn chưa đủ đâu! 😝',
+]
 
 // Brass padlock with a heart keyhole; the shackle springs up when unlocked.
 function Padlock() {
@@ -61,7 +70,13 @@ export default function Envelope({ onOpen }) {
   const [opening, setOpening] = useState(false)
   const [hint, setHint] = useState(false)
   const [shake, setShake] = useState(0)
+  const [dodges, setDodges] = useState(0)
+  const [taunt, setTaunt] = useState(null)
+  const [notePos, setNotePos] = useState(null) // null = taped to the envelope corner
   const timers = useRef([])
+  const stageRef = useRef(null)
+  const noteRef = useRef(null)
+  const panelRef = useRef(null)
 
   const spin = (i, delta) =>
     setDigits((d) => d.map((v, j) => (j === i ? (v + delta + 10) % 10 : v)))
@@ -77,6 +92,61 @@ export default function Envelope({ onOpen }) {
   useEffect(() => () => timers.current.forEach(clearTimeout), [])
 
   useEffect(() => {
+    if (taunt === null) return
+    const t = setTimeout(() => setTaunt(null), 1800)
+    return () => clearTimeout(t)
+  }, [taunt])
+
+  // a resize would leave the note stranded off-screen, so send it home
+  useEffect(() => {
+    const onResize = () => setNotePos(null)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  // Pick a random visible spot that's well away from where the note is now and
+  // doesn't cover the combination wheels.
+  const findHideout = () => {
+    const stage = stageRef.current.getBoundingClientRect()
+    const note = noteRef.current.getBoundingClientRect()
+    const panel = panelRef.current.getBoundingClientRect()
+    const vw = document.documentElement.clientWidth
+    const vh = window.innerHeight
+    const maxX = Math.max(EDGE, vw - note.width - EDGE)
+    const maxY = Math.max(EDGE, vh - note.height - EDGE)
+    const minJump = Math.min(vw, vh) * 0.35
+    const overlapsPanel = (x, y) =>
+      x < panel.right + 8 && x + note.width > panel.left - 8 && y < panel.bottom + 8 && y + note.height > panel.top - 8
+
+    let spot = null
+    for (let i = 0; i < 40 && !spot; i++) {
+      const x = EDGE + Math.random() * (maxX - EDGE)
+      const y = EDGE + Math.random() * (maxY - EDGE)
+      const far = Math.hypot(x - note.left, y - note.top) > minJump
+      // on tiny screens there may be no spot that is both far and clear, so relax the distance at the end
+      if (!overlapsPanel(x, y) && (far || i > 30)) spot = { x, y }
+    }
+    spot ??= { x: EDGE + Math.random() * (maxX - EDGE), y: EDGE }
+    return {
+      left: spot.x - stage.left,
+      top: spot.y - stage.top,
+      right: spot.x + note.width / 2 > vw / 2,
+      below: spot.y < 90,
+    }
+  }
+
+  const pokeNote = () => {
+    if (dodges < NOTE_TAUNTS.length) {
+      setNotePos(findHideout())
+      setDodges(dodges + 1)
+      setTaunt(dodges)
+      return
+    }
+    setTaunt(null)
+    setHint(true)
+  }
+
+  useEffect(() => {
     if (!hint) return
     const onKey = (e) => e.key === 'Escape' && setHint(false)
     window.addEventListener('keydown', onKey)
@@ -85,7 +155,7 @@ export default function Envelope({ onOpen }) {
 
   return (
     <div className={`envelope-screen ${unlocked ? 'unlocked' : ''} ${opening ? 'opening' : ''}`}>
-      <div className="env-stage">
+      <div className="env-stage" ref={stageRef}>
         <Star size={46} className="env-spark env-spark-r" />
         <Sparkle size={52} className="env-spark env-spark-l" />
         <span className="env-shadow" aria-hidden="true" />
@@ -155,14 +225,30 @@ export default function Envelope({ onOpen }) {
           </button>
         </div>
 
-        <button className="hint-note" onClick={() => setHint(true)} aria-haspopup="dialog" aria-expanded={hint}>
+        <button
+          ref={noteRef}
+          className="hint-note"
+          style={notePos ? { top: notePos.top, left: notePos.left } : undefined}
+          onClick={pokeNote}
+          aria-haspopup="dialog"
+          aria-expanded={hint}
+        >
+          {taunt !== null && (
+            <span
+              key={taunt}
+              className={`note-taunt ${notePos?.right ? 'right' : ''} ${notePos?.below ? 'below' : ''}`}
+              role="status"
+            >
+              {NOTE_TAUNTS[taunt]}
+            </span>
+          )}
           <span className="hint-tape" aria-hidden="true" />
           <span className="hint-title">Gợi ý?</span>
           <span className="hint-sub">chạm để xem</span>
         </button>
       </div>
 
-      <div className="lock-panel">
+      <div className="lock-panel" ref={panelRef}>
         <p className="lock-title">{unlocked ? 'Mở khóa rồi!' : 'Hãy mở tôi'}</p>
         <p className="lock-sub">{unlocked ? 'Thư đang mở đây...' : 'Xoay đúng 4 con số để mở khóa'}</p>
         <div className="wheels" role="group" aria-label="Khóa số">
@@ -176,7 +262,7 @@ export default function Envelope({ onOpen }) {
         <div className="hint-backdrop" onClick={() => setHint(false)}>
           <div className="hint-card" role="dialog" aria-modal="true" aria-label="Gợi ý mật mã" onClick={(e) => e.stopPropagation()}>
             <span className="hint-tape" aria-hidden="true" />
-            <p className="hint-card-title">Psst... gợi ý nè</p>
+            <p className="hint-card-title">Huhu bị bắt rồi 🙈 Gợi ý nè...</p>
             <p>
               Mùa thu, phố phường ngập sắc hoa, và các cô gái được cưng chiều nhất năm.
             </p>

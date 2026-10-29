@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { Heart, Sparkle } from './Doodles.jsx'
 
-const INK = '#2b2321'
+const INK = '#4a2c25'
 
 function Daisy({ x, y, color, center = '#f2b01e', delay, r = 1 }) {
   return (
