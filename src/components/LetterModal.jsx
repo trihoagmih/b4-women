@@ -23,10 +23,17 @@ export default function LetterModal({ lady, onClose }) {
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', onKey)
-    document.body.style.overflow = 'hidden'
+    // lock the page behind the letter. It has to go on <html>: html sets its own
+    // overflow-x, so body's overflow never reaches the viewport. Pad by the
+    // scrollbar's width so the page doesn't jump sideways when it disappears.
+    const root = document.documentElement
+    const scrollbar = window.innerWidth - root.clientWidth
+    root.style.overflow = 'hidden'
+    root.style.paddingRight = `${scrollbar}px`
     return () => {
       window.removeEventListener('keydown', onKey)
-      document.body.style.overflow = ''
+      root.style.overflow = ''
+      root.style.paddingRight = ''
     }
   }, [onClose])
 

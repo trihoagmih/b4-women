@@ -11,143 +11,89 @@ const WISHES = [
   'Mãi tươi như hoa',
 ]
 
-const SATIN = '#f5b2c0'
-const SATIN_EDGE = '#de8396'
+// Painted watercolor bows (square, transparent). KNOT is where the bow's knot
+// sits in each image, as a fraction of its size; the ribbon runs across it.
+const BOWS = { left: 'ribbon/bow-left.webp', right: 'ribbon/bow-right.webp' }
+const KNOT = { x: 0.49, y: 0.43 }
 
-// The ribbon's centre line, drawn in real pixels so the text never stretches:
-// it starts at the left bow, dips through the middle and climbs to the right bow.
-function ribbonPath(w, h) {
-  const x0 = w * 0.035
-  const x1 = w * 0.965
-  return `M${x0} ${h * 0.36} C${w * 0.25} ${h * 0.62} ${w * 0.38} ${h * 0.9} ${w * 0.52} ${h * 0.86} S${w * 0.85} ${h * 0.3} ${x1} ${h * 0.36}`
+// The ribbon's centre line, drawn in real pixels so the text never stretches.
+// It starts out in the left bow's outer loop, crosses the knot, dips through
+// the middle and climbs back across the right knot into its outer loop.
+function ribbonCurves(w, h, x0, lift) {
+  const y = h * 0.36 - lift
+  const a = [[x0, y], [w * 0.25, h * 0.62], [w * 0.38, h * 0.9], [w * 0.52, h * 0.86]]
+  // second curve starts smoothly where the first ends (its first handle mirrors the last)
+  const b = [a[3], [w * 0.66, h * 0.82], [w * 0.85, h * 0.3], [w - x0, y]]
+  return [a, b]
 }
 
-// Watercolor cherry blossom: five notched petals shading from a pale heart to
-// pink tips, with a ring of golden stamens.
-function Flower({ x, y, r, rot = 0, fill = 'url(#petal-pink)' }) {
-  return (
-    <g transform={`translate(${x} ${y}) rotate(${rot}) scale(${r / 30})`}>
-      {[0, 72, 144, 216, 288].map((a) => (
-        <path
-          key={a}
-          d="M0 -4 C-15 -12 -18 -30 -8 -34 L0 -28 L8 -34 C18 -30 15 -12 0 -4 Z"
-          transform={`rotate(${a})`}
-          fill={fill}
-          stroke="#e79aab"
-          strokeWidth="1.2"
-        />
-      ))}
-      <g stroke="#d9a04a" strokeWidth="1.1" strokeLinecap="round">
-        {[0, 40, 80, 120, 160, 200, 240, 280, 320].map((a) => (
-          <path key={a} d="M0 -3 L0 -11" transform={`rotate(${a})`} />
-        ))}
-      </g>
-      <g fill="#e8a92a" stroke="none">
-        {[0, 40, 80, 120, 160, 200, 240, 280, 320].map((a) => (
-          <circle key={a} cy="-11.5" r="1.6" transform={`rotate(${a})`} />
-        ))}
-      </g>
-      <circle r="4" fill="#f6c76a" stroke="none" />
-    </g>
-  )
+function ribbonPath(curves) {
+  const [a, b] = curves
+  return `M${a[0]} C${a[1]} ${a[2]} ${a[3]} C${b[1]} ${b[2]} ${b[3]}`
 }
 
-function Bud({ x, y, rot }) {
-  return (
-    <g transform={`translate(${x} ${y}) rotate(${rot})`}>
-      <path d="M0 0 L0 14" stroke="#a3a66a" strokeWidth="1.5" fill="none" />
-      <path d="M0 -12 C-7 -6 -6 2 0 3 C6 2 7 -6 0 -12 Z" fill="url(#petal-pink)" stroke="#e79aab" strokeWidth="1.2" />
-      <path d="M-5 2 C-3 6 3 6 5 2" fill="#b8c48a" stroke="none" />
-    </g>
-  )
+// point and tangent on one cubic Bézier at t
+function cubic([p0, p1, p2, p3], t) {
+  const s = 1 - t
+  const at = (i) => s * s * s * p0[i] + 3 * s * s * t * p1[i] + 3 * s * t * t * p2[i] + t * t * t * p3[i]
+  const tan = (i) => 3 * s * s * (p1[i] - p0[i]) + 6 * s * t * (p2[i] - p1[i]) + 3 * t * t * (p3[i] - p2[i])
+  return [at(0), at(1), tan(0), tan(1)]
 }
 
-// Leaf with a midrib; olive green or autumn gold like the watercolor card.
-function Leaf({ x, y, len, rot, gold }) {
-  return (
-    <g transform={`translate(${x} ${y}) rotate(${rot})`}>
-      <path
-        d={`M0 0 C${len * 0.3} ${-len * 0.22} ${len * 0.75} ${-len * 0.18} ${len} 0 C${len * 0.75} ${len * 0.18} ${len * 0.3} ${len * 0.22} 0 0 Z`}
-        fill={gold ? 'url(#leaf-gold)' : 'url(#leaf-green)'}
-        stroke={gold ? '#c49a4c' : '#8fa36a'}
-        strokeWidth="1.2"
-      />
-      <path d={`M2 0 L${len * 0.85} 0`} stroke={gold ? '#c49a4c' : '#8fa36a'} strokeWidth="1" fill="none" opacity="0.8" />
-    </g>
-  )
-}
-
-// tiny golden sprigs, like baby's breath tucked between the blossoms
-function Sprig({ x, y, rot }) {
-  return (
-    <g transform={`translate(${x} ${y}) rotate(${rot})`} stroke="#c9a25a" strokeWidth="1.2" fill="none">
-      <path d="M0 0 C4 -14 6 -26 4 -40 M3 -18 L12 -26 M5 -30 L-4 -38" />
-      <g fill="#ecc06a" stroke="none">
-        <circle cx="4" cy="-41" r="2.6" />
-        <circle cx="12" cy="-27" r="2.2" />
-        <circle cx="-4" cy="-39" r="2.2" />
-      </g>
-    </g>
-  )
-}
-
-// Satin bow: two loops, a knot and two tails, nestled in a cluster of
-// cherry blossoms and leaves.
-function Bow({ x, y, scale, flip, front }) {
-  const transform = `translate(${x} ${y}) scale(${flip ? -scale : scale} ${scale})`
-  if (front) {
-    return (
-      <g transform={transform} strokeLinejoin="round">
-        {/* blossoms spilling below the ribbon end, in front of it */}
-        <Leaf x={-40} y={52} len={56} rot={150} gold />
-        <Leaf x={-10} y={58} len={50} rot={70} />
-        <Sprig x={-56} y={70} rot={-140} />
-        <Flower x={-28} y={56} r={20} rot={15} />
-        <Flower x={6} y={74} r={14} rot={50} fill="url(#petal-pale)" />
-        <Bud x={-60} y={34} rot={-100} />
-      </g>
-    )
+// A sheer silk strip winding around the ribbon: it follows the ribbon's curve,
+// swinging above and below it in a slow wave, and twists as it goes, so it
+// pinches thin wherever it turns edge-on and opens out flat in between. It
+// tapers to nothing at both ends. Returns path data for the strip's outline,
+// its upper edge and its centre line (for a sheen).
+function silkPaths(curves, { amp, width, waves, twists, phase }) {
+  const n = 220
+  const upper = []
+  const lower = []
+  const centre = []
+  for (let i = 0; i <= n; i++) {
+    const u = i / n
+    const [x, y, dx, dy] = cubic(curves[u < 0.5 ? 0 : 1], u < 0.5 ? u * 2 : u * 2 - 1)
+    const len = Math.hypot(dx, dy) || 1
+    const nx = -dy / len
+    const ny = dx / len
+    const taper = Math.min(1, u / 0.1, (1 - u) / 0.1)
+    const off = amp * Math.sin(Math.PI * 2 * waves * u + phase) * taper
+    const open = Math.abs(Math.cos(Math.PI * 2 * twists * u + phase * 0.7))
+    const half = (width * (0.12 + 0.88 * open) * taper) / 2
+    const pt = (o) => `${(x + nx * o).toFixed(1)} ${(y + ny * o).toFixed(1)}`
+    upper.push(pt(off - half))
+    lower.push(pt(off + half))
+    centre.push(pt(off - half * 0.3))
   }
+  return {
+    body: `M${upper.join(' L')} L${lower.reverse().join(' L')} Z`,
+    edge: `M${upper.join(' L')}`,
+    centre: `M${centre.join(' L')}`,
+  }
+}
+
+function Bow({ x, y, size, src }) {
+  return <image href={src} x={x - size * KNOT.x} y={y - size * KNOT.y} width={size} height={size} />
+}
+
+// Horizontal fade: transparent before `a`, opaque from `b` until `w - b`,
+// transparent again after `w - a`. Used to dissolve the ribbon's ends.
+function EdgeFade({ id, w, a, b }) {
   return (
-    <g transform={transform} strokeLinejoin="round">
-      {/* bouquet behind the bow */}
-      <Leaf x={-6} y={-20} len={78} rot={-115} />
-      <Leaf x={6} y={-24} len={84} rot={-72} />
-      <Leaf x={14} y={-14} len={64} rot={-30} gold />
-      <Leaf x={-16} y={-8} len={60} rot={-160} gold />
-      <Leaf x={-4} y={-30} len={50} rot={-95} gold />
-      <Sprig x={30} y={-30} rot={20} />
-      <Sprig x={-36} y={-34} rot={-30} />
-      <Bud x={-58} y={-70} rot={-30} />
-      <Bud x={58} y={-82} rot={25} />
-      <Flower x={-40} y={-74} r={26} rot={10} />
-      <Flower x={18} y={-88} r={21} rot={-15} fill="url(#petal-pale)" />
-      <Flower x={-90} y={-44} r={18} rot={30} fill="url(#petal-pale)" />
-      <Flower x={78} y={-62} r={16} rot={5} />
-      <Flower x={-8} y={-56} r={15} rot={40} fill="url(#petal-pale)" />
-      <g stroke={SATIN_EDGE} strokeWidth="2">
-      <path d="M-4 6 C-18 44 -40 84 -52 120 C-38 110 -30 112 -18 128 C-8 84 2 44 4 8 Z" fill="url(#satin-fill)" />
-      <path d="M4 6 C30 38 54 76 76 106 C80 92 90 88 102 90 C72 60 38 26 8 2 Z" fill="url(#satin-fill)" />
-      <path d="M0 0 C-30 -62 -124 -64 -116 -10 C-108 32 -38 22 0 0 Z" fill="url(#satin-fill)" />
-      <path d="M0 0 C30 -62 124 -64 116 -10 C108 32 38 22 0 0 Z" fill="url(#satin-fill)" />
-      {/* inner folds and highlights */}
-      <g fill="none" strokeLinecap="round">
-        <path d="M-8 2 C-36 -6 -76 0 -96 8" stroke="#dc6f86" strokeWidth="8" opacity="0.4" />
-        <path d="M8 2 C36 -6 76 0 96 8" stroke="#dc6f86" strokeWidth="8" opacity="0.4" />
-        <path d="M-16 -16 C-40 -42 -82 -50 -100 -30" stroke="#fff3f6" strokeWidth="4" opacity="0.85" />
-        <path d="M16 -16 C40 -42 82 -50 100 -30" stroke="#fff3f6" strokeWidth="4" opacity="0.85" />
-        <path d="M-8 22 C-20 58 -34 92 -44 116" stroke="#fff3f6" strokeWidth="3" opacity="0.7" />
-        <path d="M10 18 C34 48 54 76 70 98" stroke="#dc6f86" strokeWidth="3" opacity="0.35" />
-      </g>
-      <ellipse rx="14" ry="17" fill="url(#satin-fill)" />
-      <path d="M-6 -8 C-2 -2 -2 6 -6 10" fill="none" stroke="#fff3f6" strokeWidth="2.5" strokeLinecap="round" />
-      </g>
-    </g>
+    <linearGradient id={id} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2={w} y2="0">
+      <stop offset={a / w} stopColor="#fff" stopOpacity="0" />
+      <stop offset={b / w} stopColor="#fff" />
+      <stop offset={(w - b) / w} stopColor="#fff" />
+      <stop offset={(w - a) / w} stopColor="#fff" stopOpacity="0" />
+    </linearGradient>
   )
 }
 
-// A satin ribbon that curls across the page between two bows, with the
-// wishes scrolling along it on an SVG textPath.
+// A watercolor satin ribbon that curls across the page, painted over the knot
+// of a bow at each end so the blossoms peek out above and below it, with the
+// wishes scrolling along it on an SVG textPath. Three stacked SVGs: paper wash
+// and bows, the filtered ribbon (static), and the moving text on top, so only
+// the text repaints each frame.
 export default function WishRibbon() {
   const wrapRef = useRef(null)
   const textRef = useRef(null)
@@ -165,7 +111,15 @@ export default function WishRibbon() {
   const h = compact ? 190 : 300
   const band = compact ? 46 : 76
   const font = compact ? 15 : 20
-  const bowScale = compact ? 0.62 : 1.3
+  const bowSize = compact ? 186 : 390
+  // keep the knot far enough in that the whole bow stays on screen
+  const inset = Math.round(bowSize * 0.5)
+  const knotY = h * 0.36
+  // lift each bow so its blossoms sit above the ribbon and the ribbon crosses
+  // just under them, through the loops and tails, as in the reference
+  const bowY = knotY - bowSize * 0.17
+  // the ribbon reaches out past the knot into each bow's outer loop
+  const start = Math.round(bowSize * 0.16)
 
   // scroll the wishes along the path; one full set is the loop length
   useEffect(() => {
@@ -194,7 +148,15 @@ export default function WishRibbon() {
     }
   }, [w])
 
-  const d = w ? ribbonPath(w, h) : ''
+  const curves = ribbonCurves(w, h, start, band * 0.2)
+  const d = w ? ribbonPath(curves) : ''
+  // a main silk strip and a finer one out of step with it, weaving around the ribbon
+  const silk = w
+    ? [
+        silkPaths(curves, { amp: band * 0.85, width: band * 0.42, waves: 3, twists: 4.5, phase: 0.9 }),
+        silkPaths(curves, { amp: band * 0.7, width: band * 0.22, waves: 2.5, twists: 3.5, phase: 3.6 }),
+      ]
+    : []
   const set = (key) =>
     WISHES.map((wish, i) => (
       <tspan key={`${key}${i}`}>
@@ -202,62 +164,105 @@ export default function WishRibbon() {
         <tspan fill={i % 2 ? '#e0566a' : '#e8a92a'}>{i % 2 ? '   ♥   ' : '   ✿   '}</tspan>
       </tspan>
     ))
+  const layer = { width: w, height: h, viewBox: `0 0 ${w} ${h}`, 'aria-hidden': true }
 
   return (
     <div className="ribbon" ref={wrapRef} style={{ height: h }} aria-label={WISHES.join(', ')}>
       {w > 0 && (
-        <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
-          <defs>
-            <linearGradient id="satin-fill" x1="0" y1="0" x2="0.3" y2="1">
-              <stop offset="0" stopColor="#fdd9e0" />
-              <stop offset="0.5" stopColor="#f3a5b6" />
-              <stop offset="1" stopColor="#e07a91" />
-            </linearGradient>
-            <radialGradient id="petal-pink">
-              <stop offset="0.15" stopColor="#fff5f7" />
-              <stop offset="0.6" stopColor="#f9c9d3" />
-              <stop offset="1" stopColor="#f09cae" />
-            </radialGradient>
-            <radialGradient id="petal-pale">
-              <stop offset="0.2" stopColor="#fffafb" />
-              <stop offset="1" stopColor="#f8cfd8" />
-            </radialGradient>
-            <linearGradient id="leaf-green" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stopColor="#9fb27a" />
-              <stop offset="1" stopColor="#cdd6a4" />
-            </linearGradient>
-            <linearGradient id="leaf-gold" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stopColor="#d6ad62" />
-              <stop offset="1" stopColor="#f0d79c" />
-            </linearGradient>
-            <path id="ribbon-line" d={d} />
-          </defs>
-          <Bow x={w * 0.035} y={h * 0.36} scale={bowScale} />
-          <Bow x={w * 0.965} y={h * 0.36} scale={bowScale} flip />
+        <>
+          <svg {...layer}>
+            <defs>
+              <path id="ribbon-line" d={d} />
+              {/* filter areas in page pixels so a blur is never cut off along a straight edge */}
+              <filter id="silk-soft" filterUnits="userSpaceOnUse" x={-bowSize} y={-h} width={w + bowSize * 2} height={h * 3}>
+                <feGaussianBlur stdDeviation="0.8" />
+              </filter>
+              <linearGradient id="silk-sheen" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2={w} y2="0">
+                <stop offset="0" stopColor="#f19a91" />
+                <stop offset="0.3" stopColor="#f7bdb4" />
+                <stop offset="0.55" stopColor="#ef968d" />
+                <stop offset="0.8" stopColor="#f8c3ba" />
+                <stop offset="1" stopColor="#f19a91" />
+              </linearGradient>
+              {/* a wide, very soft pink glow around each bow */}
+              <filter id="ribbon-glow" filterUnits="userSpaceOnUse" x={-bowSize} y={-h} width={w + bowSize * 2} height={h * 3}>
+                <feGaussianBlur stdDeviation={band * 0.55} />
+              </filter>
+              {/* mottled pigment across the ribbon's face, like a wash that dried unevenly */}
+              <filter id="wc-satin" filterUnits="userSpaceOnUse" x={-bowSize} y={-h} width={w + bowSize * 2} height={h * 3}>
+                <feTurbulence type="fractalNoise" baseFrequency="0.006 0.04" numOctaves="3" seed="2" result="noise" />
+                <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0.91  0 0 0 0 0.5  0 0 0 0 0.47  0 0 0 1.5 -0.55" result="blots" />
+                <feComposite in="blots" in2="SourceAlpha" operator="in" result="stain" />
+                <feMerge result="stained">
+                  <feMergeNode in="SourceGraphic" />
+                  <feMergeNode in="stain" />
+                </feMerge>
+                {/* just soften the edges a touch so they read as painted, not vector */}
+                <feGaussianBlur in="stained" stdDeviation="0.5" />
+              </filter>
+              <EdgeFade id="ribbon-ends" w={w} a={start} b={start + bowSize * 0.14} />
+              <mask id="ribbon-ends-mask" maskUnits="userSpaceOnUse" x={-bowSize} y={-h} width={w + bowSize * 2} height={h * 3}>
+                <rect x={-bowSize} y={-h} width={w + bowSize * 2} height={h * 3} fill="url(#ribbon-ends)" />
+              </mask>
+              <EdgeFade id="ribbon-text-fade" w={w} a={start + bowSize * 0.12} b={start + bowSize * 0.26} />
+              <mask id="ribbon-text-mask" maskUnits="userSpaceOnUse" x={-bowSize} y={-h} width={w + bowSize * 2} height={h * 3}>
+                <rect x={-bowSize} y={-h} width={w + bowSize * 2} height={h * 3} fill="url(#ribbon-text-fade)" />
+              </mask>
+            </defs>
 
-          {/* shadow, the darker underside folding out below, then the pale satin face with stitched edges */}
-          <use href="#ribbon-line" fill="none" stroke="rgba(200, 90, 110, 0.16)" strokeWidth={band + 10} transform="translate(0 10)" />
-          <use href="#ribbon-line" fill="none" stroke="#e6869b" strokeWidth={band * 0.6} transform={`translate(0 ${band * 0.3})`} />
-          <use href="#ribbon-line" fill="none" stroke="#e993a6" strokeWidth={band} />
-          <use href="#ribbon-line" fill="none" stroke="#fbe1e6" strokeWidth={band - 3} />
-          <use href="#ribbon-line" fill="none" stroke="#f3aebd" strokeWidth={band - 8} strokeOpacity="0.55" />
-          <use href="#ribbon-line" fill="none" stroke="#fde9ed" strokeWidth={band - 11} />
-          <use href="#ribbon-line" fill="none" stroke="#fff" strokeWidth={band * 0.28} strokeOpacity="0.55" transform={`translate(0 ${-band * 0.14})`} />
+            <g filter="url(#ribbon-glow)" fill="#f2a59c">
+              <ellipse cx={inset} cy={bowY + bowSize * 0.08} rx={bowSize * 0.46} ry={bowSize * 0.3} opacity="0.14" />
+              <ellipse cx={w - inset} cy={bowY + bowSize * 0.08} rx={bowSize * 0.46} ry={bowSize * 0.3} opacity="0.14" />
+            </g>
 
-          <text className="ribbon-text" fontSize={font} dominantBaseline="central">
-            <textPath ref={textRef} href="#ribbon-line">
-              {set('a')}
-              {set('b')}
-            </textPath>
-          </text>
-          {/* invisible copy of one set, only used to measure the loop length */}
-          <text ref={measureRef} className="ribbon-text" fontSize={font} visibility="hidden" x="-9999">
-            {set('m')}
-          </text>
+            <Bow x={inset} y={bowY} size={bowSize} src={BOWS.left} />
+            <Bow x={w - inset} y={bowY} size={bowSize} src={BOWS.right} />
 
-          <Bow x={w * 0.035} y={h * 0.36} scale={bowScale} front />
-          <Bow x={w * 0.965} y={h * 0.36} scale={bowScale} flip front />
-        </svg>
+            {/* sheer silk winding around behind the ribbon, melting into the bows at the ends */}
+            <g mask="url(#ribbon-ends-mask)" filter="url(#silk-soft)">
+              {silk.map(({ body, edge, centre }, i) => (
+                <g key={i} opacity={i ? 0.45 : 0.62}>
+                  <path d={body} fill="url(#silk-sheen)" />
+                  <path d={centre} fill="none" stroke="#fff3ef" strokeWidth={band * 0.06} strokeOpacity="0.55" strokeLinecap="round" />
+                  <path d={edge} fill="none" stroke="#e98880" strokeWidth="1" strokeOpacity="0.5" />
+                </g>
+              ))}
+            </g>
+          </svg>
+
+          {/* the ribbon, painted over the knots; its ends dissolve into the bows' loops */}
+          <svg {...layer}>
+            <g mask="url(#ribbon-ends-mask)">
+              <g filter="url(#wc-satin)">
+                {/* the coral underside folding out below, in the bows' own colour, then
+                    the satin face shading from that coral at the edges to cream in the
+                    middle, with no hard outline */}
+                <use href="#ribbon-line" fill="none" stroke="#ef978e" strokeOpacity="0.55" strokeWidth={band * 0.7} transform={`translate(0 ${band * 0.28})`} />
+                <use href="#ribbon-line" fill="none" stroke="#f4aaa1" strokeOpacity="0.6" strokeWidth={band} />
+                <use href="#ribbon-line" fill="none" stroke="#f8c5bd" strokeOpacity="0.75" strokeWidth={band - 6} />
+                <use href="#ribbon-line" fill="none" stroke="#fbe0da" strokeOpacity="0.85" strokeWidth={band - 13} />
+                <use href="#ribbon-line" fill="none" stroke="#fdf0eb" strokeOpacity="0.9" strokeWidth={band - 22} />
+                <use href="#ribbon-line" fill="none" stroke="#fff" strokeWidth={band * 0.24} strokeOpacity="0.35" transform={`translate(0 ${-band * 0.14})`} />
+              </g>
+              {/* gold dotted stitching just inside both edges */}
+              <use href="#ribbon-line" fill="none" stroke="#e2b25e" strokeWidth="1.5" strokeOpacity="0.7" strokeLinecap="round" strokeDasharray="0.1 6" transform={`translate(0 ${-(band / 2 - 7)})`} />
+              <use href="#ribbon-line" fill="none" stroke="#e2b25e" strokeWidth="1.5" strokeOpacity="0.7" strokeLinecap="round" strokeDasharray="0.1 6" transform={`translate(0 ${band / 2 - 7})`} />
+            </g>
+          </svg>
+
+          <svg {...layer}>
+            <text className="ribbon-text" fontSize={font} dominantBaseline="central" mask="url(#ribbon-text-mask)">
+              <textPath ref={textRef} href="#ribbon-line">
+                {set('a')}
+                {set('b')}
+              </textPath>
+            </text>
+            {/* invisible copy of one set, only used to measure the loop length */}
+            <text ref={measureRef} className="ribbon-text" fontSize={font} visibility="hidden" x="-9999">
+              {set('m')}
+            </text>
+          </svg>
+        </>
       )}
     </div>
   )

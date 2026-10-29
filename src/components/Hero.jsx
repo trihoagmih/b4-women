@@ -60,11 +60,40 @@ export default function Hero() {
           Hoa tặng ngày thường thì là{' '}
           <span className="poem-hl">
             yêu thương
-            <svg className="hl-swash" viewBox="0 0 300 40" preserveAspectRatio="none" aria-hidden="true">
-              <path d="M-60 30 C40 14 120 34 200 24 S280 12 300 16" fill="none" stroke="#ec8c9c" strokeWidth="2.5" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+            {/* translucent brush stroke under the words: full-bodied under "yêu",
+                dipping beneath the g, then thinning out into a little heart */}
+            <svg className="hl-swash" viewBox="0 0 320 40" aria-hidden="true">
+              <path
+                d="M6 20 C60 8 120 14 190 28 C230 36 262 30 290 16 C262 34 230 40 190 33 C120 20 60 14 6 20 Z"
+                fill="#ee8fa0"
+                opacity="0.6"
+              />
+              <path
+                d="M288 17 C292 12 296 10 300 13 C300 7 308 5 311 10 C314 15 306 20 298 21 C294 21 291 19 288 17"
+                fill="none"
+                stroke="#ec8c9c"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity="0.85"
+              />
             </svg>
-            <svg className="hl-heart" viewBox="0 0 40 36" aria-hidden="true">
-              <path d="M4 30 C10 30 14 26 20 32 C10 24 2 16 6 9 C10 2 18 5 20 12 C22 5 30 2 34 9 C38 16 30 24 20 32" fill="none" stroke="#e0566a" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+            {/* the g's exit stroke loops up into an open heart */}
+            <svg className="hl-heart" viewBox="0 0 50 44" aria-hidden="true">
+              <defs>
+                <linearGradient id="hl-heart-ink" x1="0" y1="1" x2="1" y2="0">
+                  <stop offset="0" stopColor="#e0566a" />
+                  <stop offset="1" stopColor="#f08a9a" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M0 38 C8 35 13 27 12 19 C10 8 23 2 27 12 C30 2 45 3 45 13 C45 24 33 32 24 41"
+                fill="none"
+                stroke="url(#hl-heart-ink)"
+                strokeWidth="2.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </span>
         </span>
