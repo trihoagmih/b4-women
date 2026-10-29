@@ -18,7 +18,7 @@ function goToCard(e, id) {
   if (!card) return
   e.preventDefault()
   card.classList.remove('spotlight')
-  card.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  card.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' })
 
   let done = false
   const play = () => {
@@ -113,7 +113,7 @@ export default function Hero() {
             aria-label={l.nickname}
             onClick={(e) => goToCard(e, l.id)}
           >
-            <img src={l.img} alt="" />
+            <img src={l.thumb} alt="" width="96" height="96" fetchpriority="high" decoding="async" />
           </a>
         ))}
       </div>

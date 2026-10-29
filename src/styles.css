@@ -954,6 +954,9 @@ body:has(.modal-backdrop) .falling { display: none; }
   to { opacity: 0; transform: translate(6px, 34px) scale(0.3) rotate(120deg); }
 }
 
+/* the carousel's dots only show on small screens, where the cards become a carousel */
+.card-dots { display: none; }
+
 /* ---------- Small screens ---------- */
 @media (max-width: 640px) {
   :root { --ribbon-h: 190px; --ribbon-tuck: 60px; }
@@ -967,7 +970,45 @@ body:has(.modal-backdrop) .falling { display: none; }
   .card-name { font-size: 16px; }
   .card-tag { font-size: 13px; }
   .card-cta { font-size: 13px; padding: 2px 10px; }
+
+  /* the cards become a swipeable carousel: one card snaps to the centre and
+     its neighbours peek in from the sides */
+  .cards {
+    --card-w: 64vw;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 14px;
+    /* run edge to edge, with room either side so the first and last cards can centre */
+    margin: 0 -16px;
+    padding: 28px calc((100vw - var(--card-w)) / 2) 22px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+  .cards::-webkit-scrollbar { display: none; }
+  .cards .card {
+    flex: none;
+    width: var(--card-w);
+    scroll-snap-align: center;
+    scale: 0.88;
+    transition: transform 0.35s cubic-bezier(.3, 1.5, .5, 1), box-shadow 0.3s, opacity 0.6s, scale 0.35s;
+  }
+  .cards .card[data-current] { scale: 1; }
+
+  .card-dots { display: flex; justify-content: center; gap: 8px; margin-top: 4px; }
 }
+.card-dot {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: width 0.25s, background 0.25s;
+}
+.card-dot.on { width: 22px; border-radius: 6px; background: var(--accent); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }

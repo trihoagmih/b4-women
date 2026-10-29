@@ -21,9 +21,10 @@ const KNOT = { x: 0.49, y: 0.43 }
 // the middle and climbs back across the right knot into its outer loop.
 function ribbonCurves(w, h, x0, lift) {
   const y = h * 0.36 - lift
-  const a = [[x0, y], [w * 0.25, h * 0.62], [w * 0.38, h * 0.9], [w * 0.52, h * 0.86]]
+  // the dip stays shallow enough that the ribbon and the silk below it fit on the first screen
+  const a = [[x0, y], [w * 0.25, h * 0.56], [w * 0.38, h * 0.78], [w * 0.52, h * 0.74]]
   // second curve starts smoothly where the first ends (its first handle mirrors the last)
-  const b = [a[3], [w * 0.66, h * 0.82], [w * 0.85, h * 0.3], [w - x0, y]]
+  const b = [a[3], [w * 0.66, h * 0.7], [w * 0.85, h * 0.3], [w - x0, y]]
   return [a, b]
 }
 
@@ -44,14 +45,15 @@ function cubic([p0, p1, p2, p3], t) {
 // swinging above and below it in a slow wave, and twists as it goes, so it
 // pinches thin wherever it turns edge-on and opens out flat in between. It
 // tapers to nothing at both ends. Returns path data for the strip's outline,
-// its upper edge and its centre line (for a sheen).
-function silkPaths(curves, { amp, width, waves, twists, phase }) {
-  const n = 220
+// its upper edge and its centre line (for a sheen), between `from` and `to`
+// along its length (0 to 1), so a stretch of it can be drawn on its own.
+function silkPaths(curves, { amp, width, waves, twists, phase }, from = 0, to = 1) {
+  const n = Math.max(8, Math.round(220 * (to - from)))
   const upper = []
   const lower = []
   const centre = []
   for (let i = 0; i <= n; i++) {
-    const u = i / n
+    const u = from + ((to - from) * i) / n
     const [x, y, dx, dy] = cubic(curves[u < 0.5 ? 0 : 1], u < 0.5 ? u * 2 : u * 2 - 1)
     const len = Math.hypot(dx, dy) || 1
     const nx = -dy / len
@@ -72,8 +74,25 @@ function silkPaths(curves, { amp, width, waves, twists, phase }) {
   }
 }
 
-function Bow({ x, y, size, src }) {
-  return <image href={src} x={x - size * KNOT.x} y={y - size * KNOT.y} width={size} height={size} />
+// The stretches where the strip comes round in front of the ribbon. It crosses
+// the ribbon wherever its wave passes zero; every other crossing goes in
+// front (`front` picks which set). Each stretch runs from one wave crest to
+// the next, so it starts and ends well clear of the ribbon, and only crossings
+// away from the bows are used.
+function frontStretches({ waves, phase }, front) {
+  const quarter = 1 / (4 * waves)
+  const out = []
+  for (let k = 0; k <= waves * 2 + 1; k++) {
+    if ((k % 2 === 0) !== front) continue
+    const u = (k * Math.PI - phase) / (2 * Math.PI * waves)
+    if (u > 0.12 && u < 0.88) out.push([u - quarter * 0.95, u + quarter * 0.95])
+  }
+  return out
+}
+
+// tilted about its knot, so it leans along the ribbon's slope
+function Bow({ x, y, size, src, tilt = 0 }) {
+  return <image href={src} x={x - size * KNOT.x} y={y - size * KNOT.y} width={size} height={size} transform={`rotate(${tilt} ${x} ${y})`} />
 }
 
 // Horizontal fade: transparent before `a`, opaque from `b` until `w - b`,
@@ -109,9 +128,10 @@ export default function WishRibbon() {
 
   const compact = w <= 640 // same breakpoint as the CSS --ribbon-h override
   const h = compact ? 190 : 300
-  const band = compact ? 46 : 76
-  const font = compact ? 15 : 20
-  const bowSize = compact ? 186 : 390
+  const band = compact ? 34 : 76
+  const font = compact ? 13 : 20
+  // the bows grow with the screen, so on a phone they leave room for the ribbon between them
+  const bowSize = Math.round(Math.min(390, Math.max(110, w * 0.32)))
   // keep the knot far enough in that the whole bow stays on screen
   const inset = Math.round(bowSize * 0.5)
   const knotY = h * 0.36
@@ -150,13 +170,27 @@ export default function WishRibbon() {
 
   const curves = ribbonCurves(w, h, start, band * 0.2)
   const d = w ? ribbonPath(curves) : ''
-  // a main silk strip and a finer one out of step with it, weaving around the ribbon
-  const silk = w
-    ? [
-        silkPaths(curves, { amp: band * 0.85, width: band * 0.42, waves: 3, twists: 4.5, phase: 0.9 }),
-        silkPaths(curves, { amp: band * 0.7, width: band * 0.22, waves: 2.5, twists: 3.5, phase: 3.6 }),
-      ]
+  // a main silk strip and a finer one out of step with it, weaving around the
+  // ribbon: drawn whole behind it, plus the stretches that come round in front
+  // (the two strips alternate, so where one passes in front the other goes behind)
+  // fewer turns on a short ribbon (three across a desktop, one and a half on a
+  // phone), and only the main strip on small screens, where two would tangle
+  const waves = Math.min(3, Math.max(1.5, w / 530))
+  const strands = [
+    { amp: band * 0.85, width: band * 0.42, waves, twists: waves * 1.5, phase: 0.9 },
+    ...(compact ? [] : [{ amp: band * 0.7, width: band * 0.22, waves: waves * 0.83, twists: waves * 1.17, phase: 3.6 }]),
+  ]
+  const silk = w ? strands.map((s) => silkPaths(curves, s)) : []
+  const silkFront = w
+    ? strands.map((s, i) => frontStretches(s, i === 0).map(([a, b]) => silkPaths(curves, s, a, b)))
     : []
+  const silkStrand = ({ body, edge, centre }, i, key) => (
+    <g key={key} opacity={i ? 0.7 : 0.88}>
+      <path d={body} fill="url(#silk-sheen)" />
+      <path d={centre} fill="none" stroke="#fb9ca2" strokeWidth={band * 0.06} strokeOpacity="0.8" strokeLinecap="round" />
+      <path d={edge} fill="none" stroke="#cf4347" strokeWidth="1" strokeOpacity="0.55" />
+    </g>
+  )
   const set = (key) =>
     WISHES.map((wish, i) => (
       <tspan key={`${key}${i}`}>
@@ -177,12 +211,16 @@ export default function WishRibbon() {
               <filter id="silk-soft" filterUnits="userSpaceOnUse" x={-bowSize} y={-h} width={w + bowSize * 2} height={h * 3}>
                 <feGaussianBlur stdDeviation="0.8" />
               </filter>
+              <filter id="silk-front" filterUnits="userSpaceOnUse" x={-bowSize} y={-h} width={w + bowSize * 2} height={h * 3}>
+                <feGaussianBlur stdDeviation="1.8" />
+              </filter>
               <linearGradient id="silk-sheen" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2={w} y2="0">
-                <stop offset="0" stopColor="#f19a91" />
-                <stop offset="0.3" stopColor="#f7bdb4" />
-                <stop offset="0.55" stopColor="#ef968d" />
-                <stop offset="0.8" stopColor="#f8c3ba" />
-                <stop offset="1" stopColor="#f19a91" />
+                {/* watermelon pink, sampled from the swatch: #e96768 with its darker and lighter shades */}
+                <stop offset="0" stopColor="#e96768" />
+                <stop offset="0.3" stopColor="#f68c91" />
+                <stop offset="0.55" stopColor="#e4504e" />
+                <stop offset="0.8" stopColor="#f68c91" />
+                <stop offset="1" stopColor="#e96768" />
               </linearGradient>
               {/* a wide, very soft pink glow around each bow */}
               <filter id="ribbon-glow" filterUnits="userSpaceOnUse" x={-bowSize} y={-h} width={w + bowSize * 2} height={h * 3}>
@@ -208,6 +246,10 @@ export default function WishRibbon() {
               <mask id="ribbon-text-mask" maskUnits="userSpaceOnUse" x={-bowSize} y={-h} width={w + bowSize * 2} height={h * 3}>
                 <rect x={-bowSize} y={-h} width={w + bowSize * 2} height={h * 3} fill="url(#ribbon-text-fade)" />
               </mask>
+              {/* just the ribbon's own shape: the silk drawn in front only shows where it crosses the ribbon */}
+              <mask id="ribbon-band-mask" maskUnits="userSpaceOnUse" x={-bowSize} y={-h} width={w + bowSize * 2} height={h * 3}>
+                <use href="#ribbon-line" fill="none" stroke="#fff" strokeWidth={band + 2} />
+              </mask>
             </defs>
 
             <g filter="url(#ribbon-glow)" fill="#f2a59c">
@@ -215,18 +257,12 @@ export default function WishRibbon() {
               <ellipse cx={w - inset} cy={bowY + bowSize * 0.08} rx={bowSize * 0.46} ry={bowSize * 0.3} opacity="0.14" />
             </g>
 
-            <Bow x={inset} y={bowY} size={bowSize} src={BOWS.left} />
-            <Bow x={w - inset} y={bowY} size={bowSize} src={BOWS.right} />
+            <Bow x={inset} y={bowY} size={bowSize} src={BOWS.left} tilt={12} />
+            <Bow x={w - inset} y={bowY} size={bowSize} src={BOWS.right} tilt={-12} />
 
             {/* sheer silk winding around behind the ribbon, melting into the bows at the ends */}
             <g mask="url(#ribbon-ends-mask)" filter="url(#silk-soft)">
-              {silk.map(({ body, edge, centre }, i) => (
-                <g key={i} opacity={i ? 0.45 : 0.62}>
-                  <path d={body} fill="url(#silk-sheen)" />
-                  <path d={centre} fill="none" stroke="#fff3ef" strokeWidth={band * 0.06} strokeOpacity="0.55" strokeLinecap="round" />
-                  <path d={edge} fill="none" stroke="#e98880" strokeWidth="1" strokeOpacity="0.5" />
-                </g>
-              ))}
+              {silk.map((s, i) => silkStrand(s, i, i))}
             </g>
           </svg>
 
@@ -234,19 +270,27 @@ export default function WishRibbon() {
           <svg {...layer}>
             <g mask="url(#ribbon-ends-mask)">
               <g filter="url(#wc-satin)">
-                {/* the coral underside folding out below, in the bows' own colour, then
-                    the satin face shading from that coral at the edges to cream in the
-                    middle, with no hard outline */}
-                <use href="#ribbon-line" fill="none" stroke="#ef978e" strokeOpacity="0.55" strokeWidth={band * 0.7} transform={`translate(0 ${band * 0.28})`} />
-                <use href="#ribbon-line" fill="none" stroke="#f4aaa1" strokeOpacity="0.6" strokeWidth={band} />
-                <use href="#ribbon-line" fill="none" stroke="#f8c5bd" strokeOpacity="0.75" strokeWidth={band - 6} />
-                <use href="#ribbon-line" fill="none" stroke="#fbe0da" strokeOpacity="0.85" strokeWidth={band - 13} />
-                <use href="#ribbon-line" fill="none" stroke="#fdf0eb" strokeOpacity="0.9" strokeWidth={band - 22} />
+                {/* the satin face shading from the bows' coral at the edges to cream in
+                    the middle, with no hard outline */}
+                <use href="#ribbon-line" fill="none" stroke="#ec8780" strokeOpacity="0.8" strokeWidth={band} />
+                <use href="#ribbon-line" fill="none" stroke="#f2a59d" strokeOpacity="0.85" strokeWidth={band - 6} />
+                <use href="#ribbon-line" fill="none" stroke="#f7c6be" strokeOpacity="0.9" strokeWidth={band - 13} />
+                <use href="#ribbon-line" fill="none" stroke="#fbe2dc" strokeOpacity="0.92" strokeWidth={band - 22} />
                 <use href="#ribbon-line" fill="none" stroke="#fff" strokeWidth={band * 0.24} strokeOpacity="0.35" transform={`translate(0 ${-band * 0.14})`} />
               </g>
               {/* gold dotted stitching just inside both edges */}
               <use href="#ribbon-line" fill="none" stroke="#e2b25e" strokeWidth="1.5" strokeOpacity="0.7" strokeLinecap="round" strokeDasharray="0.1 6" transform={`translate(0 ${-(band / 2 - 7)})`} />
               <use href="#ribbon-line" fill="none" stroke="#e2b25e" strokeWidth="1.5" strokeOpacity="0.7" strokeLinecap="round" strokeDasharray="0.1 6" transform={`translate(0 ${band / 2 - 7})`} />
+            </g>
+          </svg>
+
+          {/* the stretches of silk that wrap round in front of the ribbon (below the words, so they stay readable) */}
+          <svg {...layer}>
+            <g mask="url(#ribbon-band-mask)">
+              {/* paler and a little out of focus, like sheer fabric nearer the eye */}
+              <g filter="url(#silk-front)" opacity="0.6">
+                {silkFront.map((pieces, i) => pieces.map((s, j) => silkStrand(s, i, `${i}-${j}`)))}
+              </g>
             </g>
           </svg>
 

@@ -1,10 +1,13 @@
 import { Sparkle, Star } from './Doodles.jsx'
 
-export default function LadyCard({ lady, index, onOpen }) {
+export default function LadyCard({ lady, index, onOpen, current }) {
   return (
     <button
       id={`lady-${lady.id}`}
       className="card reveal"
+      // an attribute rather than a class: useReveal adds .in to the class list
+      // directly, and React rewriting className would wipe it out
+      data-current={current || undefined}
       style={{ '--tilt': `${lady.tilt}deg`, '--accent': lady.color, '--i': index }}
       onClick={() => onOpen(lady)}
     >

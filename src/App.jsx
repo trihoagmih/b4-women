@@ -3,7 +3,7 @@ import { SvgFilters, Sparkle, Heart, Blob, Shuttlecock } from './components/Dood
 import { FallingDoodles, ClickBursts, CursorTrail } from './components/Ambient.jsx'
 import Envelope from './components/Envelope.jsx'
 import Hero from './components/Hero.jsx'
-import LadyCard from './components/LadyCard.jsx'
+import CardCarousel from './components/CardCarousel.jsx'
 import LetterModal from './components/LetterModal.jsx'
 import Bouquet from './components/Bouquet.jsx'
 import WishRibbon from './components/WishRibbon.jsx'
@@ -68,11 +68,7 @@ export default function App() {
             <p className="section-sub reveal">
               Nhận ra mình trong tranh chưa nè? Chạm vào để mở lời chúc dành riêng cho bạn nhé <Sparkle size={26} />
             </p>
-            <div className="cards">
-              {ladies.map((l, i) => (
-                <LadyCard key={l.id} lady={l} index={i} onOpen={setActive} />
-              ))}
-            </div>
+            <CardCarousel ladies={ladies} onOpen={setActive} />
           </section>
 
           <Bouquet />

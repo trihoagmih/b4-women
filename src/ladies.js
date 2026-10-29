@@ -2,7 +2,8 @@
 export const ladies = [
   {
     id: 1,
-    img: 'ladies/1.jpg',
+    img: 'ladies/1.webp',
+    thumb: 'ladies/thumb/1.webp',
     nickname: 'Cô Bé Phiêu Lưu',
     tag: 'Yếm jean & những giấc mơ lớn',
     color: '#7ea3d6',
@@ -12,7 +13,8 @@ export const ladies = [
   },
   {
     id: 2,
-    img: 'ladies/2.jpg',
+    img: 'ladies/2.webp',
+    thumb: 'ladies/thumb/2.webp',
     nickname: 'Nụ Cười Tỏa Nắng',
     tag: 'Kính tròn, năng lượng tròn đầy',
     color: '#f2b77a',
@@ -22,7 +24,8 @@ export const ladies = [
   },
   {
     id: 3,
-    img: 'ladies/3.jpg',
+    img: 'ladies/3.webp',
+    thumb: 'ladies/thumb/3.webp',
     nickname: 'Nhà Vô Địch',
     tag: 'Trái tim đỏ, sao vàng rực rỡ',
     color: '#c8474d',
@@ -32,7 +35,8 @@ export const ladies = [
   },
   {
     id: 4,
-    img: 'ladies/4.jpg',
+    img: 'ladies/4.webp',
+    thumb: 'ladies/thumb/4.webp',
     nickname: 'Cô Gái Mùa Hạ',
     tag: 'Mũ cói và trái tim phiêu du',
     color: '#d9b46a',
@@ -42,7 +46,8 @@ export const ladies = [
   },
   {
     id: 5,
-    img: 'ladies/5.jpg',
+    img: 'ladies/5.webp',
+    thumb: 'ladies/thumb/5.webp',
     nickname: 'Cô Gái Dịu Dàng',
     tag: 'Sơ mi kẻ sọc, tâm hồn mềm mại',
     color: '#8fb0e6',
