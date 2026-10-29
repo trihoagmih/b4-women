@@ -78,7 +78,7 @@ export default function Hero() {
                 opacity="0.85"
               />
             </svg>
-            {/* the g's exit stroke loops up into an open heart */}
+            {/* a small hand-inked heart after the words, its tip turned toward the g */}
             <svg className="hl-heart" viewBox="0 0 50 44" aria-hidden="true">
               <defs>
                 <linearGradient id="hl-heart-ink" x1="0" y1="1" x2="1" y2="0">
@@ -87,7 +87,8 @@ export default function Hero() {
                 </linearGradient>
               </defs>
               <path
-                d="M0 38 C8 35 13 27 12 19 C10 8 23 2 27 12 C30 2 45 3 45 13 C45 24 33 32 24 41"
+                d="M25 40 C18 34 6 27 6 16 C6 9 11 5 16.5 5 C21 5 24 8 25 12 C26 8 29 5 33.5 5 C39 5 44 9 44 16 C44 27 32 34 25 40 Z"
+                transform="rotate(15 25 22)"
                 fill="none"
                 stroke="url(#hl-heart-ink)"
                 strokeWidth="2.8"

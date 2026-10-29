@@ -141,28 +141,49 @@ export default function WishRibbon() {
   // the ribbon reaches out past the knot into each bow's outer loop
   const start = Math.round(bowSize * 0.16)
 
-  // scroll the wishes along the path; one full set is the loop length
+  // Scroll the wishes along the path; one full set is the loop length.
+  // Moving text along a curve makes the browser lay the whole line out again,
+  // so this only runs while the ribbon is on screen and no letter is open, and
+  // only touches the DOM once the text has moved half a pixel (which halves the
+  // work on 120/144 Hz screens without looking any less smooth).
   useEffect(() => {
     if (!w || matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const loop = measureRef.current.getComputedTextLength()
+    const root = document.documentElement
+    const el = wrapRef.current
     let offset = 0
+    let shown = -1
     let last = performance.now()
-    let paused = false
-    let frame
+    let hovered = false
+    let frame = 0
     const tick = (now) => {
-      if (!paused) offset = (offset + (now - last) * 0.045) % loop
+      if (!hovered && !root.classList.contains('letter-open')) offset = (offset + (now - last) * 0.045) % loop
       last = now
-      textRef.current.setAttribute('startOffset', -offset)
+      const step = Math.round(offset * 2) / 2
+      if (step !== shown) {
+        shown = step
+        textRef.current.setAttribute('startOffset', -step)
+      }
       frame = requestAnimationFrame(tick)
     }
-    frame = requestAnimationFrame(tick)
-    const el = wrapRef.current
-    const pause = () => { paused = true }
-    const resume = () => { paused = false }
+    const play = () => {
+      if (frame) return
+      last = performance.now()
+      frame = requestAnimationFrame(tick)
+    }
+    const stop = () => {
+      cancelAnimationFrame(frame)
+      frame = 0
+    }
+    const io = new IntersectionObserver(([e]) => (e.isIntersecting ? play() : stop()))
+    io.observe(el)
+    const pause = () => { hovered = true }
+    const resume = () => { hovered = false }
     el.addEventListener('pointerenter', pause)
     el.addEventListener('pointerleave', resume)
     return () => {
-      cancelAnimationFrame(frame)
+      stop()
+      io.disconnect()
       el.removeEventListener('pointerenter', pause)
       el.removeEventListener('pointerleave', resume)
     }

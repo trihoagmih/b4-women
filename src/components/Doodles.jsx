@@ -1,18 +1,13 @@
-// Hand-drawn doodles. The "rough" filter re-seeds its noise a few times a second,
-// which gives lines that gently "boil" like a hand-drawn animation. That repaints
-// every tick, so it is opt-in (fx="boil"); moving/transient doodles use fx="none".
-const FX = { boil: 'url(#rough)', still: 'url(#rough-still)', none: undefined }
+// Hand-drawn doodles, roughened by a still noise filter so their lines wobble
+// like ink. Moving/transient doodles use fx="none" to skip the filter.
+// (There's deliberately no animated "boiling" variant: an SVG <animate> keeps
+// the page restyling every frame even when nothing uses the filter.)
+const FX = { still: 'url(#rough-still)', none: undefined }
 
 export function SvgFilters() {
   return (
     <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
       <defs>
-        <filter id="rough">
-          <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="1">
-            <animate attributeName="seed" values="1;4;7;2" dur="0.9s" repeatCount="indefinite" calcMode="discrete" />
-          </feTurbulence>
-          <feDisplacementMap in="SourceGraphic" scale="3" />
-        </filter>
         <filter id="rough-still">
           <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="3" />
           <feDisplacementMap in="SourceGraphic" scale="3" />
