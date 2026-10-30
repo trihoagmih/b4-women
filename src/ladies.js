@@ -8,7 +8,7 @@ export const ladies = [
     tag: 'Yếm jean & những giấc mơ lớn',
     color: '#7ea3d6',
     tilt: -3,
-    vi: 'Nhân một ngày bình thường cuối tháng 10 (bình thường thật sự luôn á), toàn thể ae B4 chúc chị của bọn em ngày một xinh đẹp, lúc nào cũng vui vẻ, hạnh phúc ngập tràn, cầu quạt thì càng ngày càng lên tay. Nhưng điều quan trọng nhất nè: bọn em chúc chị sớm tìm được người chị thương, nắm tay chị đi thật lâu thật xa về sau. Nghe Hoàng Anh kể cưới chị Hường đi tận 5 củ đó chị ạ, nên chị cố lên nha, cả hội đang hóng lắm luôn! Mà nói nhỏ nè, tới giờ bọn em vẫn chưa ai đớp được của chị quá 10k đâu, nể chị thật sự ♥',
+    vi: 'Nhân một ngày bình thường cuối tháng 10 (bình thường thật sự luôn á), toàn thể ae B4 chúc chị của bọn em ngày một xinh đẹp, lúc nào cũng vui vẻ, hạnh phúc ngập tràn, cầu quạt thì càng ngày càng lên tay. Nhưng điều quan trọng nhất nè: bọn em chúc chị sớm tìm được người chị thương, nắm tay chị đi thật lâu thật xa về sau. Nghe Hoàng Anh kể cưới chị Hường đi tận 5 củ đó chị ạ, nên chị cố lên nha, cả hội đang hóng lắm luôn! Mà nói nhỏ nè, tới giờ bọn em vẫn chưa ai đớp được của Hanh quá 10k đâu, nể chị thật sự ♥',
     en: 'May every road you take lead somewhere wonderful. Keep that sparkle!',
     // her catchphrases, popping up around the photo in the letter.
     // shape: blob | pill | cloud | burst; flip mirrors the tail; at places it over the photo
