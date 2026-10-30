@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Star, Heart, Sparkle } from './Doodles.jsx'
+import ChatBubbles from './ChatBubbles.jsx'
 
 function useTypewriter(text, speed = 38) {
   const [shown, setShown] = useState('')
@@ -65,8 +66,11 @@ export default function LetterModal({ lady, onClose }) {
       >
         <button className="letter-close" onClick={onClose} aria-label="Đóng">✕</button>
 
-        <div className="letter-photo">
-          <img src={lady.img} alt={lady.nickname} decoding="async" />
+        <div className="letter-photo-wrap">
+          <div className="letter-photo">
+            <img src={lady.img} alt={lady.nickname} decoding="async" />
+          </div>
+          {lady.quotes && <ChatBubbles quotes={lady.quotes} />}
         </div>
 
         <div className="letter-body">

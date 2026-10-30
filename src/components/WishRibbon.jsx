@@ -155,9 +155,12 @@ export default function WishRibbon() {
     let shown = -1
     let last = performance.now()
     let hovered = false
+    let scrolledAt = -Infinity
     let frame = 0
     const tick = (now) => {
-      if (!hovered && !root.classList.contains('letter-open')) offset = (offset + (now - last) * 0.045) % loop
+      // rest while the page is being scrolled, so phones can spend every frame on the scroll
+      const scrolling = now - scrolledAt < 200
+      if (!hovered && !scrolling && !root.classList.contains('letter-open')) offset = (offset + (now - last) * 0.045) % loop
       last = now
       const step = Math.round(offset * 2) / 2
       if (step !== shown) {
@@ -179,11 +182,14 @@ export default function WishRibbon() {
     io.observe(el)
     const pause = () => { hovered = true }
     const resume = () => { hovered = false }
+    const onScroll = () => { scrolledAt = performance.now() }
     el.addEventListener('pointerenter', pause)
     el.addEventListener('pointerleave', resume)
+    window.addEventListener('scroll', onScroll, { passive: true })
     return () => {
       stop()
       io.disconnect()
+      window.removeEventListener('scroll', onScroll)
       el.removeEventListener('pointerenter', pause)
       el.removeEventListener('pointerleave', resume)
     }

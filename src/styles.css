@@ -28,20 +28,14 @@ body {
   font-family: var(--font-body);
   font-size: 17px;
   background-color: #fbf5ec;
-  /* watercolor paper grain */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* the bumpy "cold-press" tooth of art paper, lit from the top-left, multiplied
+     over a fine watercolor grain. Both live in the page background (not a fixed
+     blended overlay), so scrolling never has to re-blend the whole screen. */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.045' numOctaves='4' seed='8' stitchTiles='stitch'/%3E%3CfeDiffuseLighting lighting-color='%23fffaf2' surfaceScale='2.4'%3E%3CfeDistantLight azimuth='225' elevation='55'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)' opacity='0.42'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-blend-mode: multiply, normal;
   overflow-x: clip;
-}
-/* the bumpy "cold-press" tooth of art paper, lit from the top-left */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-  opacity: 0.42;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.045' numOctaves='4' seed='8' stitchTiles='stitch'/%3E%3CfeDiffuseLighting lighting-color='%23fffaf2' surfaceScale='2.4'%3E%3CfeDistantLight azimuth='225' elevation='55'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
 }
 
 html { cursor: var(--cursor); }
@@ -560,6 +554,9 @@ a { color: inherit; }
 .ribbon svg * { pointer-events: visiblePainted; }
 .ribbon > svg { display: block; overflow: visible; }
 .ribbon > svg + svg { position: absolute; inset: 0; }
+/* the moving text gets a layer of its own, so redrawing it each frame never
+   repaints the blurred, noise-filtered ribbon underneath */
+.ribbon > svg:last-child { will-change: transform; }
 .ribbon-text { font-family: var(--font-body); font-weight: 400; fill: #6b3a35; letter-spacing: 0.02em; white-space: pre; }
 
 /* ---------- Gallery ---------- */
@@ -743,16 +740,75 @@ a { color: inherit; }
 }
 .letter-close:hover { transform: rotate(90deg); }
 
+.letter-photo-wrap { position: relative; align-self: center; }
 .letter-photo {
   border-radius: 14px;
   overflow: hidden;
   background: color-mix(in srgb, var(--accent) 22%, white);
   border: 3px solid var(--ink);
   transform: rotate(-2deg);
-  align-self: center;
   isolation: isolate;
 }
 .letter-photo img { width: 100%; mix-blend-mode: multiply; }
+
+/* her catchphrases, popping up one by one around the photo and then bobbing */
+.chats { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.chat {
+  position: absolute;
+  rotate: var(--tilt);
+  animation: chat-pop 0.6s cubic-bezier(.3, 1.8, .5, 1) var(--delay) both;
+}
+@keyframes chat-pop {
+  from { opacity: 0; transform: scale(0) rotate(-25deg); }
+  60% { opacity: 1; }
+}
+.chat-float {
+  position: relative;
+  display: block;
+  padding: 12px 22px 22px;
+  white-space: pre; /* a \n in a quote breaks it onto a second line */
+  filter: drop-shadow(3px 4px 0 rgba(74, 44, 37, 0.22));
+  animation: chat-bob var(--bob) ease-in-out calc(var(--delay) + 0.6s) infinite alternate;
+}
+@keyframes chat-bob {
+  from { transform: translateY(0) rotate(0); }
+  to { transform: translateY(-6px) rotate(2deg); }
+}
+.chat svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.chat.flip svg { transform: scaleX(-1); }
+.chat path, .chat polygon {
+  fill: var(--fill);
+  stroke: var(--ink);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.chat-text { position: relative; display: block; text-align: center; font-weight: 600; font-size: 16px; color: var(--ink); }
+
+.chat-blob { transform-origin: 80% 100%; }
+.chat-pill { transform-origin: 30% 100%; }
+.chat-pill .chat-float { padding: 10px 22px 26px; }
+.chat-cloud { transform-origin: 30% 100%; }
+.chat-cloud .chat-float { padding: 16px 26px 20px; }
+/* the trail of little puffs a thought floats up from */
+.chat-cloud .chat-float::before,
+.chat-cloud .chat-float::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: var(--fill);
+  border: 2.5px solid var(--ink);
+}
+.chat-cloud .chat-float::before { width: 14px; height: 12px; left: 62%; bottom: -10px; }
+.chat-cloud .chat-float::after { width: 8px; height: 7px; left: 70%; bottom: -20px; }
+.chat-burst { transform-origin: 50% 50%; }
+.chat-burst .chat-float { padding: 24px 30px; }
+.chat-burst .chat-text { font-size: 20px; letter-spacing: 0.03em; }
+.chat-burst .chat-float { animation-name: chat-shout; }
+@keyframes chat-shout {
+  from { transform: scale(1) rotate(-3deg); }
+  to { transform: scale(1.08) rotate(3deg); }
+}
 
 .letter-body { display: flex; flex-direction: column; justify-content: center; }
 .letter-to { margin: 0 0 8px; font-family: var(--font-script); font-size: 42px; line-height: 1.1; }
@@ -966,7 +1022,13 @@ a { color: inherit; }
 @media (max-width: 640px) {
   :root { --ribbon-h: 190px; --ribbon-tuck: 60px; }
   .letter { grid-template-columns: 1fr; padding: 22px 18px; gap: 14px; }
-  .letter-photo { width: 62%; justify-self: center; }
+  .letter-photo-wrap { width: 62%; justify-self: center; }
+  .chat-text { font-size: 13px; }
+  .chat-burst .chat-text { font-size: 16px; }
+  .chat-float { padding: 9px 16px 17px; }
+  .chat-pill .chat-float { padding: 8px 16px 20px; }
+  .chat-cloud .chat-float { padding: 12px 18px 15px; }
+  .chat-burst .chat-float { padding: 18px 22px; }
   .letter-text { font-size: 18px; line-height: 39px; }
   .hero-d3, .hero-d5 { display: none; }
   .hero-petal-extra { display: none; }
@@ -997,6 +1059,8 @@ a { color: inherit; }
     width: var(--card-w);
     scroll-snap-align: center;
     scale: 0.88;
+    /* scale is its own property: without naming it here, swiping repaints the card's filtered border */
+    will-change: transform, scale;
     transition: transform 0.35s cubic-bezier(.3, 1.5, .5, 1), box-shadow 0.3s, opacity 0.6s, scale 0.35s;
   }
   .cards .card[data-current] { scale: 1; }
@@ -1014,6 +1078,18 @@ a { color: inherit; }
   transition: width 0.25s, background 0.25s;
 }
 .card-dot.on { width: 22px; border-radius: 6px; background: var(--accent); }
+
+/* the narrowest phones: a bigger photo and smaller bubbles, so the two-line
+   catchphrases don't pile on top of each other or cover her face */
+@media (max-width: 380px) {
+  .letter-photo-wrap { width: 76%; }
+  .chat-text { font-size: 11px; }
+  .chat-burst .chat-text { font-size: 13px; }
+  .chat-float { padding: 7px 12px 13px; }
+  .chat-pill .chat-float { padding: 6px 12px 15px; }
+  .chat-cloud .chat-float { padding: 9px 13px 11px; }
+  .chat-burst .chat-float { padding: 14px 17px; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }

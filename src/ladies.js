@@ -8,8 +8,16 @@ export const ladies = [
     tag: 'Yếm jean & những giấc mơ lớn',
     color: '#7ea3d6',
     tilt: -3,
-    vi: 'Chúc bạn 20/10 luôn tràn đầy năng lượng, đi thật nhiều nơi, gặp thật nhiều điều hay và cười thật tươi như hôm nay nhé!',
+    vi: 'Nhân một ngày bình thường cuối tháng 10 (bình thường thật sự luôn á), toàn thể ae B4 chúc chị của bọn em ngày một xinh đẹp, lúc nào cũng vui vẻ, hạnh phúc ngập tràn, cầu quạt thì càng ngày càng lên tay. Nhưng điều quan trọng nhất nè: bọn em chúc chị sớm tìm được người chị thương, nắm tay chị đi thật lâu thật xa về sau. Nghe Hoàng Anh kể cưới chị Hường đi tận 5 củ đó chị ạ, nên chị cố lên nha, cả hội đang hóng lắm luôn! Mà nói nhỏ nè, tới giờ bọn em vẫn chưa ai đớp được của chị quá 10k đâu, nể chị thật sự ♥',
     en: 'May every road you take lead somewhere wonderful. Keep that sparkle!',
+    // her catchphrases, popping up around the photo in the letter.
+    // shape: blob | pill | cloud | burst; flip mirrors the tail; at places it over the photo
+    quotes: [
+      { text: 'Đơn giản rứa mờ!', shape: 'blob', fill: '#fff6d6', tilt: -6, at: { top: '-3%', left: '-7%' } },
+      { text: 'Chị oke mà 👌', shape: 'pill', fill: '#fcd3db', tilt: 5, at: { top: '30%', right: '-9%' } },
+      { text: 'Tuần sau ăn gì?', shape: 'cloud', fill: '#dce8f8', tilt: -4, at: { top: '52%', left: '-8%' } },
+      { text: 'Beer! 🍺', shape: 'burst', fill: '#ffd06b', tilt: 10, at: { bottom: '3%', right: '-7%' } },
+    ],
   },
   {
     id: 2,
@@ -19,8 +27,14 @@ export const ladies = [
     tag: 'Kính tròn, năng lượng tròn đầy',
     color: '#f2b77a',
     tilt: 2,
-    vi: 'Chúc bạn luôn giữ nụ cười ấm áp như ánh nắng, để mọi điều nhỏ bé quanh mình đều hóa thành niềm vui.',
+    vi: 'Nhân 20/10 đã qua và chào đón ngày Nhà giáo 20/11 sắp đến (phải làm ở giữa để gộp thôi vì bọn anh sống tình cảm nhưng mà được cái nghèo, em thông cảm), chúc cô giáo xinh đẹp, luôn vui tươi yêu đời, công tác tốt, đánh cầu ngày càng hay hơn. Cảm ơn Mai đã đến giao lưu và cố định luôn, ở lại với đội bọn anh lâu hơn Mai nhé!!!',
     en: 'Your smile is the best kind of weather.',
+    quotes: [
+      { text: 'Ơ lít tồ sai', shape: 'cloud', fill: '#fff6d6', tilt: -5, at: { top: '-4%', left: '-6%' } },
+      { text: 'sm', shape: 'pill', fill: '#fcd3db', tilt: 6, at: { top: '32%', right: '-6%' } },
+      { text: 'Trvia!', shape: 'burst', fill: '#ffd06b', tilt: -8, at: { top: '55%', left: '-8%' } },
+      { text: 'Haha, hài hơn\nđược không anh', shape: 'blob', fill: '#dce8f8', tilt: 4, flip: true, at: { bottom: '2%', right: '-9%' } },
+    ],
   },
   {
     id: 3,
@@ -30,8 +44,14 @@ export const ladies = [
     tag: 'Trái tim đỏ, sao vàng rực rỡ',
     color: '#c8474d',
     tilt: -1.5,
-    vi: 'Chúc bạn luôn mạnh mẽ, tự tin và rực rỡ như ngôi sao vàng trên ngực áo. Chiến thắng nào cũng đang chờ bạn!',
+    vi: 'Nhân một ngày bình thường cuối tháng 10 (bình thường thôi, đừng nghĩ nhiều), toàn thể ae B4 chúc Chi luôn xinh đẹp, mạnh khoẻ, công việc thăng hoa, đánh cầu hay hơn, bình tĩnh hơn, bớt chẹp miệng với bớt lườm lại một xíu nha. Tháng sau là ngày trọng đại của cuộc đời bạn rồi, chúc những gì tốt đẹp nhất sẽ ùa tới với bạn. Và... bớt cáu lại nhé! (P/S: đây không phải Huy viết đâu nha)',
     en: 'Strong, bright and unstoppable — just like you.',
+    quotes: [
+      { text: 'Uh đm!', shape: 'burst', fill: '#f7a8a0', tilt: -10, at: { top: '-4%', left: '-7%' } },
+      { text: 'Thế đi 👍', shape: 'pill', fill: '#fff6d6', tilt: 5, at: { top: '30%', right: '-9%' } },
+      { text: 'Mệt...', shape: 'cloud', fill: '#dce8f8', tilt: -4, at: { top: '56%', left: '-8%' } },
+      { text: 'Trật tự đi!', shape: 'blob', fill: '#fcd3db', tilt: 6, flip: true, at: { bottom: '2%', right: '-8%' } },
+    ],
   },
   {
     id: 4,
@@ -41,8 +61,14 @@ export const ladies = [
     tag: 'Mũ cói và trái tim phiêu du',
     color: '#d9b46a',
     tilt: 3,
-    vi: 'Chúc bạn có thật nhiều chuyến đi đẹp, nhiều ly cà phê ngon và những ngày bình yên ngập nắng.',
+    vi: 'Nhân một ngày bình thường cuối tháng 10, toàn thể ae B4 xin kính chúc Tiên ngày càng xinh đẹp hơn, hạnh phúc, thành công hơn trong công việc, đánh cầu càng ngày càng hay hơn, hi vọng những điều may mắn nhất sẽ đến với cậu. Bọn tớ luôn vui khi có sự xuất hiện của cậu ở trong đội!!!',
     en: "Here's to sunny days and dreams that come true.",
+    quotes: [
+      { text: 'Suỵt!!!', shape: 'burst', fill: '#ffd06b', tilt: -8, at: { top: '-4%', left: '-8%' } },
+      { text: 'Điên rồii', shape: 'pill', fill: '#fcd3db', tilt: 6, at: { top: '30%', right: '-8%' } },
+      { text: 'Thành phố buồn\nnhớ không mân...', shape: 'cloud', fill: '#dce8f8', tilt: -4, at: { top: '54%', left: '-6%' } },
+      { text: 'Ngày chủ nhật\nngày của mân đàn', shape: 'blob', fill: '#fff6d6', tilt: 4, flip: true, at: { bottom: '2%', right: '-9%' } },
+    ],
   },
   {
     id: 5,
@@ -52,7 +78,13 @@ export const ladies = [
     tag: 'Sơ mi kẻ sọc, tâm hồn mềm mại',
     color: '#8fb0e6',
     tilt: -2,
-    vi: 'Chúc bạn luôn xinh đẹp, dịu dàng và được yêu thương thật nhiều — mỗi ngày, chứ không chỉ riêng 20/10.',
+    vi: 'Nhân một ngày bình thường cuối tháng 10, toàn thể ae B4 chúc Hằng luôn xinh đẹp, vui tươi, hồn nhiên như cậu bây giờ nhé. Chúc Hằng đánh cầu càng ngày càng hay hơn, mỗi năm đi du lịch được nhiều hơn, hâm mộ được đúng người hơn siuuuuu. (Lời chúc được viết lúc 6h50p)',
     en: 'You deserve all the kindness you give away.',
+    quotes: [
+      { text: 'Thế giới cũng chỉ\nđến thế mà thôi', shape: 'cloud', fill: '#dce8f8', tilt: -5, at: { top: '-5%', left: '-6%' } },
+      { text: 'Ok 👌', shape: 'pill', fill: '#fff6d6', tilt: 6, at: { top: '34%', right: '-8%' } },
+      { text: 'Siu!', shape: 'burst', fill: '#ffd06b', tilt: -8, at: { top: '55%', left: '-8%' } },
+      { text: 'Vì anh mà em đến 💕', shape: 'blob', fill: '#fcd3db', tilt: 4, flip: true, at: { bottom: '2%', right: '-9%' } },
+    ],
   },
 ]
