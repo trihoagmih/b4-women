@@ -87,4 +87,21 @@ export const ladies = [
       { text: 'Vì anh mà em đến 💕', shape: 'blob', fill: '#fcd3db', tilt: 4, flip: true, at: { bottom: '2%', right: '-9%' } },
     ],
   },
+  {
+    id: 6,
+    img: 'ladies/6.webp',
+    thumb: 'ladies/thumb/6.webp',
+    nickname: 'Tay Vợt Tỏa Sáng',
+    tag: 'Áo xanh, vợt xanh & dấu V chiến thắng',
+    color: '#3f5fa8',
+    tilt: 2.5,
+    vi: 'Nhân một ngày bình thường cuối tháng 10, toàn thể ae B4 chúc cậu luôn xinh đẹp, vui vẻ, mạnh khoẻ, công việc suôn sẻ, đánh cầu ngày càng hay hơn, smash ngày càng mạnh hơn. Cảm ơn cậu đã luôn mang năng lượng tích cực tới sân, ở lại chơi với đội thật lâu nhé!!!',
+    en: 'Keep smiling, keep shining — victory looks good on you.',
+    quotes: [
+      { text: 'Yeah! ✌️', shape: 'burst', fill: '#ffd06b', tilt: -8, at: { top: '-4%', left: '-7%' } },
+      { text: 'Đánh thêm\nséc nữa đi!', shape: 'cloud', fill: '#dce8f8', tilt: 5, at: { top: '30%', right: '-9%' } },
+      { text: 'Out rồi!', shape: 'pill', fill: '#fcd3db', tilt: -4, at: { top: '55%', left: '-8%' } },
+      { text: 'Hehe 😆', shape: 'blob', fill: '#fff6d6', tilt: 5, flip: true, at: { bottom: '2%', right: '-8%' } },
+    ],
+  },
 ]
