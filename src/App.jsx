@@ -66,7 +66,7 @@ export default function App() {
               <span>Gửi mấy con dồ</span>
             </h2>
             <p className="section-sub reveal">
-              Nhận ra mình trong tranh chưa nè? Chạm vào để mở lời chúc dành riêng cho bạn nhé <Sparkle size={26} />
+              Nhận ra mình chưa mấy bà? Chạm vào mà đọc lời chúc nè <Sparkle size={26} />
             </p>
             <CardCarousel ladies={ladies} onOpen={setActive} />
           </section>
