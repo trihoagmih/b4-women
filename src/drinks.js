@@ -5,7 +5,7 @@ export const orderConfig = {
   // Anyone who knows the name can read it, so keep it hard to guess.
   ntfyTopic: 'b4-women-tra-sua-7k2q9x',
 
-  // Fallback if the push fails: the order is copied and this link is opened
+  // Fallback if the push fails: the vote is copied and this link is opened
   // so she can paste it to you. e.g. 'https://zalo.me/0912345678' or 'https://m.me/your.name'
   contactUrl: '',
 }
@@ -19,10 +19,3 @@ export const shops = [
   { id: 'mam', name: 'Mầm', tag: 'Xanh mát dịu dàng', color: '#7fb98a' },
   { id: 'phela', name: 'Phê La', tag: 'Ô long đặc sản', color: '#b5835a' },
 ]
-
-export const sizes = [
-  { id: 'M', label: 'Size M' },
-  { id: 'L', label: 'Size L' },
-]
-export const sugarLevels = ['0%', '30%', '50%', '70%', '100%']
-export const iceLevels = ['Không đá', 'Ít đá', 'Bình thường']

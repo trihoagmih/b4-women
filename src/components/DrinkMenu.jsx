@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Blob, Heart, Sparkle } from './Doodles.jsx'
-import { shops, sizes, sugarLevels, iceLevels, orderConfig } from '../drinks.js'
+import { shops, orderConfig } from '../drinks.js'
 
 const INK = '#4a2c25'
 
@@ -18,24 +18,6 @@ function Cup({ color, size = 64 }) {
       <path d="M14 18 H50 L45 58 Q32 62 19 58 Z" fill="none" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
       <path d="M11 18 Q32 10 53 18" fill="#fcd3db" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
     </svg>
-  )
-}
-
-function Chips({ options, value, onChange, label }) {
-  return (
-    <div className="chip-row" role="radiogroup" aria-label={label}>
-      <span className="chip-label">{label}</span>
-      {options.map((o) => {
-        const id = typeof o === 'string' ? o : o.id
-        const text = typeof o === 'string' ? o : o.label
-        return (
-          <button key={id} type="button" role="radio" aria-checked={value === id}
-            className={`chip ${value === id ? 'on' : ''}`} onClick={() => onChange(id)}>
-            {text}
-          </button>
-        )
-      })}
-    </div>
   )
 }
 
@@ -77,10 +59,6 @@ export default function DrinkMenu({ ladies }) {
   const [otherName, setOtherName] = useState('')
   const [shopId, setShopId] = useState(null) // shop id, or 'other'
   const [otherShop, setOtherShop] = useState('')
-  const [size, setSize] = useState('M')
-  const [sugar, setSugar] = useState('50%')
-  const [ice, setIce] = useState('Bình thường')
-  const [note, setNote] = useState('')
   const [status, setStatus] = useState('idle') // idle | sending | sent | fallback
 
   const lady = ladies.find((l) => l.id === who)
@@ -90,12 +68,7 @@ export default function DrinkMenu({ ladies }) {
   const shopName = shopId === 'other' ? otherShop.trim() : shop?.name
   const ready = Boolean(name && shopName)
 
-  const orderText = (by) => [
-      `${by} order:`,
-      `Quán: ${shopName}`,
-      `Size ${size} · Đường ${sugar} · ${ice}`,
-      note.trim() && `Ghi chú: ${note.trim()}`,
-    ].filter(Boolean).join('\n')
+  const orderText = (by) => `${by} vote: ${shopName}`
   // the copy-and-paste fallback is shown on the page, so it keeps the nickname
   const message = ready ? orderText(name) : ''
 
@@ -131,7 +104,6 @@ export default function DrinkMenu({ ladies }) {
   }
 
   function reset() {
-    setNote('')
     setStatus('idle')
   }
 
@@ -147,7 +119,7 @@ export default function DrinkMenu({ ladies }) {
 
       <div className="drinks-layout">
         <div className="order-card reveal">
-          <p className="step-title"><b>1.</b> Ai đang gọi món nè?</p>
+          <p className="step-title"><b>1.</b> Ai đang vote nè?</p>
           <div className="who-row">
             {ladies.map((l) => (
               <button key={l.id} type="button" className={`who ${who === l.id ? 'on' : ''}`}
@@ -189,28 +161,22 @@ export default function DrinkMenu({ ladies }) {
               onChange={(e) => setOtherShop(e.target.value)} maxLength={60} />
           )}
 
-          <p className="step-title"><b>3.</b> Tuỳ chỉnh xíu</p>
-          <Chips label="Size" options={sizes} value={size} onChange={setSize} />
-          <Chips label="Đường" options={sugarLevels} value={sugar} onChange={setSugar} />
-          <Chips label="Đá" options={iceLevels} value={ice} onChange={setIce} />
-          <textarea className="text-in" rows={2} placeholder="Thèm món gì, topping hay ghi chú… (không bắt buộc)"
-            value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} />
 
           {status === 'sent' ? (
             <div className="order-done" role="status">
               <Sparkle size={30} />
-              <p>Đã vote & gửi order! Kết quả sẽ được công bố sau nha ♥</p>
+              <p>Đã vote! Kết quả sẽ được công bố sau nha ♥</p>
               <button type="button" className="btn-ghost" onClick={reset}>Đổi quán / vote lại</button>
             </div>
           ) : status === 'fallback' ? (
             <div className="order-done" role="status">
-              <p>Chưa gửi tự động được 😢 Đơn đã được copy, dán gửi tụi mình nhé:</p>
+              <p>Chưa gửi tự động được 😢 Phiếu đã được copy, dán gửi tụi mình nhé:</p>
               <pre className="order-text">{message}</pre>
               <button type="button" className="btn-ghost" onClick={reset}>Làm lại</button>
             </div>
           ) : (
             <button type="button" className="btn-send" disabled={!ready || status === 'sending'} onClick={send}>
-              {status === 'sending' ? 'Đang gửi…' : ready ? 'Gửi order 💌' : 'Chọn tên & quán đã nha'}
+              {status === 'sending' ? 'Đang gửi…' : ready ? 'Gửi vote 💌' : 'Chọn tên & quán đã nha'}
             </button>
           )}
         </div>

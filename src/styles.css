@@ -1010,14 +1010,6 @@ a { color: inherit; }
 .drink-name { font-weight: 600; color: var(--ink); font-size: 15px; line-height: 1.3; margin-top: 4px; }
 .drink-desc { font-size: 12.5px; opacity: 0.8; }
 
-.chip-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
-.chip-label { width: 52px; font-size: 14px; font-weight: 600; color: var(--ink); }
-.chip {
-  padding: 6px 14px; border: 2px solid rgba(74, 44, 37, 0.3); border-radius: 999px; background: #fff; font-size: 14px;
-  transition: background 0.15s, border-color 0.15s;
-}
-.chip.on { background: #ffd97a; border-color: var(--ink); font-weight: 600; }
-
 .text-in {
   display: block; width: 100%; margin-top: 10px; padding: 10px 14px; resize: vertical;
   font: inherit; font-size: 15px; color: var(--ink); background: #fff;
