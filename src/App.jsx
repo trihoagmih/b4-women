@@ -64,7 +64,7 @@ export default function App() {
           <section id="gallery" className="gallery">
             <h2 className="section-title reveal">
               <Blob color="#f6b9c4" />
-              <span>Gửi mấy con dồ</span>
+              <span>Gửi mấy bà smash đau hơn người yêu cũ</span>
             </h2>
             <p className="section-sub reveal">
               Nhận ra mình chưa mấy bà? Chạm vào mà đọc lời chúc nè <Sparkle size={26} />

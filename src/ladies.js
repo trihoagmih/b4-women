@@ -95,7 +95,7 @@ export const ladies = [
     tag: 'Áo xanh, vợt xanh & dấu V chiến thắng',
     color: '#3f5fa8',
     tilt: 2.5,
-    vi: 'Nhân một ngày bình thường cuối tháng 10, toàn thể ae B4 chúc cậu luôn xinh đẹp, vui vẻ, mạnh khoẻ, công việc suôn sẻ, đánh cầu ngày càng hay hơn, smash ngày càng mạnh hơn. Cảm ơn cậu đã luôn mang năng lượng tích cực tới sân, ở lại chơi với đội thật lâu nhé!!!',
+    vi: 'Nhân một ngày bình thường cuối tháng 10, toàn thể ae B4 chúc GOAT cầu lông luôn xinh đẹp, vui vẻ, mạnh khoẻ, công việc suôn sẻ, đánh cầu ngày càng hay hơn, smash ngày càng mạnh hơn. Cảm ơn cậu đã luôn mang năng lượng tích cực tới sân, chúc cậu sớm quay lại với đội nhé!!!',
     en: 'Keep smiling, keep shining — victory looks good on you.',
     quotes: [
       { text: 'Yeah! ✌️', shape: 'burst', fill: '#ffd06b', tilt: -8, at: { top: '-4%', left: '-7%' } },
