@@ -7,6 +7,7 @@ import CardCarousel from './components/CardCarousel.jsx'
 import LetterModal from './components/LetterModal.jsx'
 import Bouquet from './components/Bouquet.jsx'
 import WishRibbon from './components/WishRibbon.jsx'
+import DrinkMenu from './components/DrinkMenu.jsx'
 import { ladies } from './ladies.js'
 
 // Adds .in to .reveal elements (and .drawn to the bouquet) once they scroll into view.
@@ -63,15 +64,17 @@ export default function App() {
           <section id="gallery" className="gallery">
             <h2 className="section-title reveal">
               <Blob color="#f6b9c4" />
-              <span>Gửi mấy bà smash đau hơn người yêu cũ</span>
+              <span>Gửi những bông hoa biết đánh cầu… và đánh cả tụi anh</span>
             </h2>
             <p className="section-sub reveal">
-              Nhận ra mình chưa mấy bà? Chạm vào mà đọc lời chúc nè <Sparkle size={26} />
+              Nhận ra mình chưa? Chạm vào đọc lời chúc, đọc xong nhớ nương tay với tụi anh nha <Sparkle size={26} />
             </p>
             <CardCarousel ladies={ladies} onOpen={setActive} />
           </section>
 
           <Bouquet />
+
+          <DrinkMenu ladies={ladies} />
 
           <footer className="footer">
             <p className="footer-love">
