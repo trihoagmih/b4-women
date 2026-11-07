@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import QRCode from 'qrcode'
 import { Blob, Heart, Sparkle } from './Doodles.jsx'
-import { drinks, sizes, sugarLevels, iceLevels, orderConfig } from '../drinks.js'
+import { shops, sizes, sugarLevels, iceLevels, orderConfig } from '../drinks.js'
 
 const INK = '#4a2c25'
 
@@ -40,19 +40,20 @@ function Chips({ options, value, onChange, label }) {
   )
 }
 
-function ShopeeQR() {
+function ShopeeQR({ shop }) {
+  const url = shop?.shopeeUrl || orderConfig.shopeeUrl
   const [svg, setSvg] = useState('')
   useEffect(() => {
-    QRCode.toString(orderConfig.shopeeUrl, { type: 'svg', margin: 1, color: { dark: INK, light: '#fffaf3' } })
+    QRCode.toString(url, { type: 'svg', margin: 1, color: { dark: INK, light: '#fffaf3' } })
       .then(setSvg)
       .catch(() => setSvg(''))
-  }, [])
+  }, [url])
   return (
     <div className="qr-card reveal">
       <p className="qr-title">Tự đặt trên ShopeeFood</p>
       {svg && <div className="qr-img" dangerouslySetInnerHTML={{ __html: svg }} />}
-      <p className="qr-hint">Quét mã hoặc bấm nút nha</p>
-      <a className="btn-ghost" href={orderConfig.shopeeUrl} target="_blank" rel="noreferrer">Mở ShopeeFood</a>
+      <p className="qr-hint">{shop?.shopeeUrl ? `Quán ${shop.name} nè` : 'Quét mã hoặc bấm nút nha'}</p>
+      <a className="btn-ghost" href={url} target="_blank" rel="noreferrer">Mở ShopeeFood</a>
     </div>
   )
 }
@@ -60,28 +61,40 @@ function ShopeeQR() {
 export default function DrinkMenu({ ladies }) {
   const [who, setWho] = useState(null) // lady id, or 'other'
   const [otherName, setOtherName] = useState('')
-  const [drinkId, setDrinkId] = useState(null)
+  const [shopId, setShopId] = useState(null) // shop id, or 'other'
+  const [otherShop, setOtherShop] = useState('')
+  const [drinkIdx, setDrinkIdx] = useState(null) // index into the shop's menu
+  const [typedDrink, setTypedDrink] = useState('')
   const [size, setSize] = useState('M')
   const [sugar, setSugar] = useState('50%')
   const [ice, setIce] = useState('Bình thường')
   const [note, setNote] = useState('')
   const [status, setStatus] = useState('idle') // idle | sending | sent | fallback
 
-  const drink = drinks.find((d) => d.id === drinkId)
   const lady = ladies.find((l) => l.id === who)
   const name = who === 'other' ? otherName.trim() : lady?.nickname
-  const price = drink ? drink.price + (sizes.find((s) => s.id === size)?.extra ?? 0) : 0
-  const ready = Boolean(drink && name)
+  const shop = shops.find((s) => s.id === shopId)
+  const shopName = shopId === 'other' ? otherShop.trim() : shop?.name
+  const menu = shop?.menu
+  const picked = menu?.[drinkIdx]
+  const drinkName = menu ? picked?.name : typedDrink.trim()
+  const ready = Boolean(name && shopName && drinkName)
 
   const message = useMemo(() => {
     if (!ready) return ''
     return [
       `${name} order:`,
-      `${drink.name} (${size}) ~${price}k`,
+      `Quán: ${shopName}`,
+      `${drinkName} (${size})${picked?.price ? ` ~${picked.price}k` : ''}`,
       `Đường ${sugar} · ${ice}`,
       note.trim() && `Ghi chú: ${note.trim()}`,
     ].filter(Boolean).join('\n')
-  }, [ready, name, drink, size, price, sugar, ice, note])
+  }, [ready, name, shopName, drinkName, picked, size, sugar, ice, note])
+
+  function pickShop(id) {
+    setShopId(id)
+    setDrinkIdx(null)
+  }
 
   async function fallback() {
     try { await navigator.clipboard.writeText(message) } catch { /* shown on screen anyway */ }
@@ -98,7 +111,7 @@ export default function DrinkMenu({ ladies }) {
         method: 'POST',
         body: JSON.stringify({
           topic: orderConfig.ntfyTopic,
-          title: `🧋 ${name} gọi nước`,
+          title: `🧋 ${name} gọi ${shopName}`,
           message,
           tags: ['bubble_tea'],
         }),
@@ -111,7 +124,8 @@ export default function DrinkMenu({ ladies }) {
   }
 
   function reset() {
-    setDrinkId(null)
+    setDrinkIdx(null)
+    setTypedDrink('')
     setNote('')
     setStatus('idle')
   }
@@ -123,7 +137,7 @@ export default function DrinkMenu({ ladies }) {
         <span>Trà sữa đâu?</span>
       </h2>
       <p className="section-sub reveal">
-        Chọn món đi mấy bà, B4 bao hết <Heart size={22} />
+        Chọn quán, chọn món đi mấy bà, B4 bao hết <Heart size={22} />
       </p>
 
       <div className="drinks-layout">
@@ -148,20 +162,50 @@ export default function DrinkMenu({ ladies }) {
               onChange={(e) => setOtherName(e.target.value)} maxLength={40} />
           )}
 
-          <p className="step-title"><b>2.</b> Uống gì đây?</p>
+          <p className="step-title"><b>2.</b> Hôm nay uống quán nào?</p>
           <div className="drink-grid">
-            {drinks.map((d) => (
-              <button key={d.id} type="button" className={`drink ${drinkId === d.id ? 'on' : ''}`}
-                onClick={() => setDrinkId(d.id)} aria-pressed={drinkId === d.id}>
-                <Cup color={d.color} size={52} />
-                <span className="drink-name">{d.name}</span>
-                <span className="drink-desc">{d.desc}</span>
-                <span className="drink-price">{d.price}k</span>
+            {shops.map((sh) => (
+              <button key={sh.id} type="button" className={`drink ${shopId === sh.id ? 'on' : ''}`}
+                onClick={() => pickShop(sh.id)} aria-pressed={shopId === sh.id}>
+                <Cup color={sh.color} size={52} />
+                <span className="drink-name">{sh.name}</span>
+                <span className="drink-desc">{sh.tag}</span>
               </button>
             ))}
+            <button type="button" className={`drink ${shopId === 'other' ? 'on' : ''}`}
+              onClick={() => pickShop('other')} aria-pressed={shopId === 'other'}>
+              <Cup color="#ead0a6" size={52} />
+              <span className="drink-name">Quán khác</span>
+              <span className="drink-desc">Tự ghi tên quán</span>
+            </button>
           </div>
+          {shopId === 'other' && (
+            <input className="text-in" placeholder="Tên quán là gì nè?" value={otherShop}
+              onChange={(e) => setOtherShop(e.target.value)} maxLength={60} />
+          )}
 
-          <p className="step-title"><b>3.</b> Tuỳ chỉnh xíu</p>
+          {shopId && (
+            <>
+              <p className="step-title"><b>3.</b> Uống món gì?</p>
+              {menu ? (
+                <div className="drink-grid">
+                  {menu.map((d, i) => (
+                    <button key={d.name} type="button" className={`drink ${drinkIdx === i ? 'on' : ''}`}
+                      onClick={() => setDrinkIdx(i)} aria-pressed={drinkIdx === i}>
+                      <span className="drink-name">{d.name}</span>
+                      {d.desc && <span className="drink-desc">{d.desc}</span>}
+                      {d.price ? <span className="drink-price">{d.price}k</span> : null}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <input className="text-in" placeholder="Gõ tên món, vd: Ô Long Nhài Sữa" value={typedDrink}
+                  onChange={(e) => setTypedDrink(e.target.value)} maxLength={80} />
+              )}
+            </>
+          )}
+
+          <p className="step-title"><b>{shopId ? 4 : 3}.</b> Tuỳ chỉnh xíu</p>
           <Chips label="Size" options={sizes} value={size} onChange={setSize} />
           <Chips label="Đường" options={sugarLevels} value={sugar} onChange={setSugar} />
           <Chips label="Đá" options={iceLevels} value={ice} onChange={setIce} />
@@ -182,12 +226,12 @@ export default function DrinkMenu({ ladies }) {
             </div>
           ) : (
             <button type="button" className="btn-send" disabled={!ready || status === 'sending'} onClick={send}>
-              {status === 'sending' ? 'Đang gửi…' : ready ? `Gửi order · ${price}k` : 'Chọn tên & món đã nha'}
+              {status === 'sending' ? 'Đang gửi…' : ready ? 'Gửi order 💌' : 'Chọn tên, quán & món đã nha'}
             </button>
           )}
         </div>
 
-        <ShopeeQR />
+        <ShopeeQR shop={shop} />
       </div>
     </section>
   )

@@ -1,7 +1,6 @@
 // Drink order settings — edit here, everything else updates automatically.
 export const orderConfig = {
-  // Link to the shop on ShopeeFood (open the shop in the app → Share → Copy link).
-  // The QR code and the "Mở ShopeeFood" button both point here.
+  // Fallback link for the QR code when the chosen shop has no shopeeUrl yet.
   shopeeUrl: 'https://shopeefood.vn/',
 
   // Orders are pushed to your phone through ntfy.sh (free, no sign-up):
@@ -14,22 +13,23 @@ export const orderConfig = {
   contactUrl: '',
 }
 
-// Match these to the shop's real menu. price is in thousand đồng (35 → 35k).
-// color tints the little cup drawing.
-export const drinks = [
-  { id: 'ts-truyen-thong', name: 'Trà sữa truyền thống', desc: 'Trân châu đen dẻo dẻo', price: 35, color: '#c99a6b' },
-  { id: 'ts-matcha', name: 'Trà sữa matcha', desc: 'Matcha Nhật, kem cheese', price: 42, color: '#9cc47a' },
-  { id: 'ts-khoai-mon', name: 'Trà sữa khoai môn', desc: 'Tím mộng mơ', price: 40, color: '#b79ad6' },
-  { id: 'tra-dao', name: 'Trà đào cam sả', desc: 'Thanh mát, nhiều đào', price: 39, color: '#f4a96a' },
-  { id: 'tra-vai', name: 'Trà vải hoa hồng', desc: 'Ngọt nhẹ, thơm hoa', price: 39, color: '#f6b9c4' },
-  { id: 'sua-tuoi-tcdd', name: 'Sữa tươi trân châu đường đen', desc: 'Best seller', price: 38, color: '#e9dcc8' },
-  { id: 'hong-tra-kem', name: 'Hồng trà kem muối', desc: 'Béo béo mặn mặn', price: 36, color: '#d0745a' },
-  { id: 'nuoc-ep', name: 'Nước ép dưa hấu', desc: 'Healthy chút nha', price: 35, color: '#f07a7a' },
+// The milk-tea shops the girls can pick from.
+// - shopeeUrl: the shop's ShopeeFood link (open the shop in the app → Share → Copy link).
+//   Left empty, the QR falls back to orderConfig.shopeeUrl.
+// - menu (optional): list of { name, desc, price } (price in thousand đồng, 35 → 35k).
+//   Without a menu she just types the drink name.
+// - color tints the shop's little cup.
+export const shops = [
+  { id: 'laang-traa', name: 'Laang Traa', tag: 'Một ly là vui', color: '#9cc47a', shopeeUrl: '' },
+  { id: 'nooshan', name: 'Nooshan', tag: 'Chill chút nha', color: '#e27aa0', shopeeUrl: '' },
+  { id: 'zang-tea', name: 'Zang Tea', tag: 'Uống là mê', color: '#f2b77a', shopeeUrl: '' },
+  { id: 'mam', name: 'Mầm', tag: 'Xanh mát dịu dàng', color: '#7fb98a', shopeeUrl: '' },
+  { id: 'phela', name: 'Phê La', tag: 'Ô long đặc sản', color: '#b5835a', shopeeUrl: '' },
 ]
 
 export const sizes = [
-  { id: 'M', label: 'Size M', extra: 0 },
-  { id: 'L', label: 'Size L', extra: 6 },
+  { id: 'M', label: 'Size M' },
+  { id: 'L', label: 'Size L' },
 ]
 export const sugarLevels = ['0%', '30%', '50%', '70%', '100%']
 export const iceLevels = ['Không đá', 'Ít đá', 'Bình thường']
