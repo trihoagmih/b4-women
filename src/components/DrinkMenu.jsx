@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import QRCode from 'qrcode'
+import { useCallback, useEffect, useState } from 'react'
 import { Blob, Heart, Sparkle } from './Doodles.jsx'
 import { shops, sizes, sugarLevels, iceLevels, orderConfig } from '../drinks.js'
 
@@ -36,24 +35,6 @@ function Chips({ options, value, onChange, label }) {
           </button>
         )
       })}
-    </div>
-  )
-}
-
-function ShopeeQR({ shop }) {
-  const url = shop?.shopeeUrl || orderConfig.shopeeUrl
-  const [svg, setSvg] = useState('')
-  useEffect(() => {
-    QRCode.toString(url, { type: 'svg', margin: 1, color: { dark: INK, light: '#fffaf3' } })
-      .then(setSvg)
-      .catch(() => setSvg(''))
-  }, [url])
-  return (
-    <div className="qr-card reveal">
-      <p className="qr-title">Tự đặt trên ShopeeFood</p>
-      {svg && <div className="qr-img" dangerouslySetInnerHTML={{ __html: svg }} />}
-      <p className="qr-hint">{shop?.shopeeUrl ? `Quán ${shop.name} nè` : 'Quét mã hoặc bấm nút nha'}</p>
-      <a className="btn-ghost" href={url} target="_blank" rel="noreferrer">Mở ShopeeFood</a>
     </div>
   )
 }
@@ -100,14 +81,16 @@ function tallyOf(votes) {
   return [...by].map(([shop, voters]) => ({ shop, voters })).sort((a, b) => b.voters.length - a.voters.length)
 }
 
-function VoteBoard({ votes }) {
-  const tally = tallyOf(votes)
+function VoteBoard({ votes, ladies }) {
+  // notifications carry real names; the page shows nicknames
+  const shown = (voter) => ladies.find((l) => l.realName === voter)?.nickname ?? voter
+  const tally = tallyOf(votes.map((v) => ({ ...v, voter: shown(v.voter) })))
   const max = tally[0]?.voters.length || 1
   return (
     <div className="vote-card reveal">
-      <p className="qr-title">Bảng vote</p>
+      <p className="vote-title">Bảng vote</p>
       {tally.length === 0 ? (
-        <p className="qr-hint">Chưa ai vote, mở hàng đi nào!</p>
+        <p className="vote-hint">Chưa ai vote, mở hàng đi nào!</p>
       ) : (
         <ol className="vote-list">
           {tally.map((t, i) => (
@@ -142,6 +125,7 @@ export default function DrinkMenu({ ladies }) {
 
   const lady = ladies.find((l) => l.id === who)
   const name = who === 'other' ? otherName.trim() : lady?.nickname
+  const realName = who === 'other' ? name : lady?.realName || name // what the notification says
   const shop = shops.find((s) => s.id === shopId)
   const shopName = shopId === 'other' ? otherShop.trim() : shop?.name
   const menu = shop?.menu
@@ -149,16 +133,15 @@ export default function DrinkMenu({ ladies }) {
   const drinkName = menu ? picked?.name : typedDrink.trim()
   const ready = Boolean(name && shopName && drinkName)
 
-  const message = useMemo(() => {
-    if (!ready) return ''
-    return [
-      `${name} order:`,
+  const orderText = (by) => [
+      `${by} order:`,
       `Quán: ${shopName}`,
       `${drinkName} (${size})${picked?.price ? ` ~${picked.price}k` : ''}`,
       `Đường ${sugar} · ${ice}`,
       note.trim() && `Ghi chú: ${note.trim()}`,
     ].filter(Boolean).join('\n')
-  }, [ready, name, shopName, drinkName, picked, size, sugar, ice, note])
+  // the copy-and-paste fallback is shown on the page, so it keeps the nickname
+  const message = ready ? orderText(name) : ''
 
   function pickShop(id) {
     setShopId(id)
@@ -177,15 +160,15 @@ export default function DrinkMenu({ ladies }) {
     setStatus('sending')
     try {
       // tally including this vote, so the notification says who's winning
-      const others = votes.filter((v) => v.voter !== name)
-      const lead = tallyOf([...others, { voter: name, shop: shopName }])
+      const others = votes.filter((v) => v.voter !== realName)
+      const lead = tallyOf([...others, { voter: realName, shop: shopName }])
         .map((t) => `${t.shop} ${t.voters.length}`).join(' · ')
       const res = await fetch('https://ntfy.sh/', {
         method: 'POST',
         body: JSON.stringify({
           topic: orderConfig.ntfyTopic,
-          title: `🧋 ${name}${TITLE_SEP}${shopName}`,
-          message: `${message}\n\n📊 Vote: ${lead}`,
+          title: `🧋 ${realName}${TITLE_SEP}${shopName}`,
+          message: `${orderText(realName)}\n\n📊 Vote: ${lead}`,
           tags: ['bubble_tea'],
         }),
       })
@@ -289,7 +272,7 @@ export default function DrinkMenu({ ladies }) {
           {status === 'sent' ? (
             <div className="order-done" role="status">
               <Sparkle size={30} />
-              <p>Đã vote & gửi order! Xem bảng vote bên cạnh nha ♥</p>
+              <p>Đã vote & gửi order! Xem bảng vote nha ♥</p>
               <button type="button" className="btn-ghost" onClick={reset}>Đổi món / đổi quán</button>
             </div>
           ) : status === 'fallback' ? (
@@ -306,8 +289,7 @@ export default function DrinkMenu({ ladies }) {
         </div>
 
         <div className="side-col">
-          <VoteBoard votes={votes} />
-          <ShopeeQR shop={shop} />
+          <VoteBoard votes={votes} ladies={ladies} />
         </div>
       </div>
     </section>

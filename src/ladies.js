@@ -5,6 +5,7 @@ export const ladies = [
     img: 'ladies/1.webp',
     thumb: 'ladies/thumb/1.webp',
     nickname: 'Cô Bé Phiêu Lưu',
+    realName: 'chị Hường', // only used in the order notification, never shown on the page
     tag: 'Yếm jean & những giấc mơ lớn',
     color: '#7ea3d6',
     tilt: -3,
@@ -24,6 +25,7 @@ export const ladies = [
     img: 'ladies/2.webp',
     thumb: 'ladies/thumb/2.webp',
     nickname: 'Nụ Cười Tỏa Nắng',
+    realName: 'em Mai', // only used in the order notification, never shown on the page
     tag: 'Kính tròn, năng lượng tròn đầy',
     color: '#f2b77a',
     tilt: 2,
@@ -41,6 +43,7 @@ export const ladies = [
     img: 'ladies/3.webp',
     thumb: 'ladies/thumb/3.webp',
     nickname: 'Nhà Vô Địch',
+    realName: 'con Chi dồ', // only used in the order notification, never shown on the page
     tag: 'Trái tim đỏ, sao vàng rực rỡ',
     color: '#c8474d',
     tilt: -1.5,
@@ -58,6 +61,7 @@ export const ladies = [
     img: 'ladies/4.webp',
     thumb: 'ladies/thumb/4.webp',
     nickname: 'Cô Gái Mùa Hạ',
+    realName: 'Tiên', // only used in the order notification, never shown on the page
     tag: 'Mũ cói và trái tim phiêu du',
     color: '#d9b46a',
     tilt: 3,
@@ -75,6 +79,7 @@ export const ladies = [
     img: 'ladies/5.webp',
     thumb: 'ladies/thumb/5.webp',
     nickname: 'Cô Gái Dịu Dàng',
+    realName: 'Hằng', // only used in the order notification, never shown on the page
     tag: 'Sơ mi kẻ sọc, tâm hồn mềm mại',
     color: '#8fb0e6',
     tilt: -2,
@@ -92,6 +97,7 @@ export const ladies = [
     img: 'ladies/6.webp',
     thumb: 'ladies/thumb/6.webp',
     nickname: 'Tay Vợt Tỏa Sáng',
+    realName: 'Đan', // only used in the order notification, never shown on the page
     tag: 'Áo xanh, vợt xanh & dấu V chiến thắng',
     color: '#3f5fa8',
     tilt: 2.5,
