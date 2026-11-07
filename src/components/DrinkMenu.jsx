@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import QRCode from 'qrcode'
 import { Blob, Heart, Sparkle } from './Doodles.jsx'
 import { shops, sizes, sugarLevels, iceLevels, orderConfig } from '../drinks.js'
@@ -58,7 +58,76 @@ function ShopeeQR({ shop }) {
   )
 }
 
+// Every order is also a vote for its shop. The votes live in the ntfy topic
+// itself: the title is "🧋 <name> → <shop>", and we read them back from
+// ntfy's message cache (ntfy.sh keeps messages for about 12 hours).
+const TITLE_SEP = ' → '
+const TOPIC_URL = `https://ntfy.sh/${encodeURIComponent(orderConfig.ntfyTopic)}`
+
+function useVotes() {
+  const [votes, setVotes] = useState([]) // [{ voter, shop, time }], latest per voter
+
+  const refresh = useCallback(async () => {
+    if (!orderConfig.ntfyTopic) return
+    try {
+      const res = await fetch(`${TOPIC_URL}/json?poll=1&since=all`)
+      if (!res.ok) return
+      const latest = new Map()
+      for (const line of (await res.text()).split('\n')) {
+        if (!line.trim()) continue
+        const m = JSON.parse(line)
+        const [voter, shop] = (m.title || '').replace(/^🧋\s*/, '').split(TITLE_SEP)
+        if (m.event !== 'message' || !voter || !shop) continue
+        latest.set(voter, { voter, shop, time: m.time }) // later messages overwrite: one vote each
+      }
+      setVotes([...latest.values()])
+    } catch { /* keep showing the last tally */ }
+  }, [])
+
+  useEffect(() => {
+    refresh()
+    const t = setInterval(refresh, 20000)
+    return () => clearInterval(t)
+  }, [refresh])
+
+  return [votes, refresh]
+}
+
+// [{ shop, voters: [...] }] sorted by votes, most first
+function tallyOf(votes) {
+  const by = new Map()
+  for (const v of votes) by.set(v.shop, [...(by.get(v.shop) || []), v.voter])
+  return [...by].map(([shop, voters]) => ({ shop, voters })).sort((a, b) => b.voters.length - a.voters.length)
+}
+
+function VoteBoard({ votes }) {
+  const tally = tallyOf(votes)
+  const max = tally[0]?.voters.length || 1
+  return (
+    <div className="vote-card reveal">
+      <p className="qr-title">Bảng vote</p>
+      {tally.length === 0 ? (
+        <p className="qr-hint">Chưa ai vote, mở hàng đi nào!</p>
+      ) : (
+        <ol className="vote-list">
+          {tally.map((t, i) => (
+            <li key={t.shop}>
+              <div className="vote-head">
+                <span>{i === 0 && t.voters.length > (tally[1]?.voters.length ?? 0) ? '👑 ' : ''}{t.shop}</span>
+                <b>{t.voters.length}</b>
+              </div>
+              <div className="vote-bar"><span style={{ width: `${(t.voters.length / max) * 100}%` }} /></div>
+              <p className="vote-who">{t.voters.join(', ')}</p>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  )
+}
+
 export default function DrinkMenu({ ladies }) {
+  const [votes, refreshVotes] = useVotes()
   const [who, setWho] = useState(null) // lady id, or 'other'
   const [otherName, setOtherName] = useState('')
   const [shopId, setShopId] = useState(null) // shop id, or 'other'
@@ -107,17 +176,22 @@ export default function DrinkMenu({ ladies }) {
     if (!orderConfig.ntfyTopic) return fallback()
     setStatus('sending')
     try {
+      // tally including this vote, so the notification says who's winning
+      const others = votes.filter((v) => v.voter !== name)
+      const lead = tallyOf([...others, { voter: name, shop: shopName }])
+        .map((t) => `${t.shop} ${t.voters.length}`).join(' · ')
       const res = await fetch('https://ntfy.sh/', {
         method: 'POST',
         body: JSON.stringify({
           topic: orderConfig.ntfyTopic,
-          title: `🧋 ${name} gọi ${shopName}`,
-          message,
+          title: `🧋 ${name}${TITLE_SEP}${shopName}`,
+          message: `${message}\n\n📊 Vote: ${lead}`,
           tags: ['bubble_tea'],
         }),
       })
       if (!res.ok) throw new Error(res.status)
       setStatus('sent')
+      refreshVotes()
     } catch {
       fallback()
     }
@@ -134,10 +208,10 @@ export default function DrinkMenu({ ladies }) {
     <section id="drinks" className="drinks">
       <h2 className="section-title reveal">
         <Blob color="#ffd97a" />
-        <span>Trà sữa đâu?</span>
+        <span>Uống gì để còn đánh tiếp?</span>
       </h2>
       <p className="section-sub reveal">
-        Chọn quán, chọn món đi mấy bà, B4 bao hết <Heart size={22} />
+        Vote quán đi mấy bà, quán nào nhiều phiếu B4 bao (ví hơi mỏng, vote nhẹ tay thôi) <Heart size={22} />
       </p>
 
       <div className="drinks-layout">
@@ -162,7 +236,7 @@ export default function DrinkMenu({ ladies }) {
               onChange={(e) => setOtherName(e.target.value)} maxLength={40} />
           )}
 
-          <p className="step-title"><b>2.</b> Hôm nay uống quán nào?</p>
+          <p className="step-title"><b>2.</b> Vote quán nào đây?</p>
           <div className="drink-grid">
             {shops.map((sh) => (
               <button key={sh.id} type="button" className={`drink ${shopId === sh.id ? 'on' : ''}`}
@@ -215,8 +289,8 @@ export default function DrinkMenu({ ladies }) {
           {status === 'sent' ? (
             <div className="order-done" role="status">
               <Sparkle size={30} />
-              <p>Đã gửi! Nước đang trên đường tới nha ♥</p>
-              <button type="button" className="btn-ghost" onClick={reset}>Gọi thêm món</button>
+              <p>Đã vote & gửi order! Xem bảng vote bên cạnh nha ♥</p>
+              <button type="button" className="btn-ghost" onClick={reset}>Đổi món / đổi quán</button>
             </div>
           ) : status === 'fallback' ? (
             <div className="order-done" role="status">
@@ -231,7 +305,10 @@ export default function DrinkMenu({ ladies }) {
           )}
         </div>
 
-        <ShopeeQR shop={shop} />
+        <div className="side-col">
+          <VoteBoard votes={votes} />
+          <ShopeeQR shop={shop} />
+        </div>
       </div>
     </section>
   )
