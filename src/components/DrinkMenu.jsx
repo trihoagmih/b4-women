@@ -118,7 +118,19 @@ export default function DrinkMenu({ ladies }) {
       </p>
 
       <div className="drinks-layout">
-        <div className="order-card reveal">
+        {status === 'sent' ? (
+          <div className="order-card thanks in" role="status">
+            <div className="thanks-art" aria-hidden="true">
+              <Sparkle size={34} />
+              <Cup color={shop?.color || '#ead0a6'} size={84} />
+              <Heart size={34} />
+            </div>
+            <p className="thanks-title">Cảm ơn {name} nha!</p>
+            <p className="thanks-text">Phiếu của bạn đã được gửi. Kết quả sẽ được công bố sau nha ♥</p>
+            <button type="button" className="thanks-again" onClick={reset}>Lỡ tay? Vote lại</button>
+          </div>
+        ) : (
+        <div className="order-card reveal in">
           <p className="step-title"><b>1.</b> Ai đang vote nè?</p>
           <div className="who-row">
             {ladies.map((l) => (
@@ -161,14 +173,7 @@ export default function DrinkMenu({ ladies }) {
               onChange={(e) => setOtherShop(e.target.value)} maxLength={60} />
           )}
 
-
-          {status === 'sent' ? (
-            <div className="order-done" role="status">
-              <Sparkle size={30} />
-              <p>Đã vote! Kết quả sẽ được công bố sau nha ♥</p>
-              <button type="button" className="btn-ghost" onClick={reset}>Đổi quán / vote lại</button>
-            </div>
-          ) : status === 'fallback' ? (
+          {status === 'fallback' ? (
             <div className="order-done" role="status">
               <p>Chưa gửi tự động được 😢 Phiếu đã được copy, dán gửi tụi mình nhé:</p>
               <pre className="order-text">{message}</pre>
@@ -180,7 +185,7 @@ export default function DrinkMenu({ ladies }) {
             </button>
           )}
         </div>
-
+        )}
       </div>
     </section>
   )
