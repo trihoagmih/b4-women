@@ -7,6 +7,7 @@ import CardCarousel from './components/CardCarousel.jsx'
 import LetterModal from './components/LetterModal.jsx'
 import Bouquet from './components/Bouquet.jsx'
 import WishRibbon from './components/WishRibbon.jsx'
+import DrinkMenu from './components/DrinkMenu.jsx'
 import { ladies } from './ladies.js'
 
 // Adds .in to .reveal elements (and .drawn to the bouquet) once they scroll into view.
@@ -72,6 +73,8 @@ export default function App() {
           </section>
 
           <Bouquet />
+
+          <DrinkMenu ladies={ladies} />
 
           <footer className="footer">
             <p className="footer-love">
