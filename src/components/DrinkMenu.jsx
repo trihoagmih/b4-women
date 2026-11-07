@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Blob, Heart, Sparkle } from './Doodles.jsx'
 import { shops, sizes, sugarLevels, iceLevels, orderConfig } from '../drinks.js'
 
@@ -39,78 +39,40 @@ function Chips({ options, value, onChange, label }) {
   )
 }
 
-// Every order is also a vote for its shop. The votes live in the ntfy topic
-// itself: the title is "🧋 <name> → <shop>", and we read them back from
-// ntfy's message cache (ntfy.sh keeps messages for about 12 hours).
+// Every order is also a vote for its shop. The votes live only in the ntfy
+// topic (title "🧋 <name> → <shop>"), never on the page, so voting stays
+// anonymous for the girls. When a vote is sent we read the earlier ones back
+// from ntfy's cache (about 12 hours) so the notification carries the tally.
 const TITLE_SEP = ' → '
 const TOPIC_URL = `https://ntfy.sh/${encodeURIComponent(orderConfig.ntfyTopic)}`
 
-function useVotes() {
-  const [votes, setVotes] = useState([]) // [{ voter, shop, time }], latest per voter
-
-  const refresh = useCallback(async () => {
-    if (!orderConfig.ntfyTopic) return
-    try {
-      const res = await fetch(`${TOPIC_URL}/json?poll=1&since=all`)
-      if (!res.ok) return
-      const latest = new Map()
-      for (const line of (await res.text()).split('\n')) {
-        if (!line.trim()) continue
-        const m = JSON.parse(line)
-        const [voter, shop] = (m.title || '').replace(/^🧋\s*/, '').split(TITLE_SEP)
-        if (m.event !== 'message' || !voter || !shop) continue
-        latest.set(voter, { voter, shop, time: m.time }) // later messages overwrite: one vote each
-      }
-      setVotes([...latest.values()])
-    } catch { /* keep showing the last tally */ }
-  }, [])
-
-  useEffect(() => {
-    refresh()
-    const t = setInterval(refresh, 20000)
-    return () => clearInterval(t)
-  }, [refresh])
-
-  return [votes, refresh]
+// [{ voter, shop }], latest vote per voter
+async function fetchVotes() {
+  try {
+    const res = await fetch(`${TOPIC_URL}/json?poll=1&since=all`)
+    if (!res.ok) return []
+    const latest = new Map()
+    for (const line of (await res.text()).split('\n')) {
+      if (!line.trim()) continue
+      const m = JSON.parse(line)
+      const [voter, shop] = (m.title || '').replace(/^🧋\s*/, '').split(TITLE_SEP)
+      if (m.event !== 'message' || !voter || !shop) continue
+      latest.set(voter, { voter, shop }) // later messages overwrite: one vote each
+    }
+    return [...latest.values()]
+  } catch {
+    return []
+  }
 }
 
-// [{ shop, voters: [...] }] sorted by votes, most first
+// [{ shop, count }] sorted by votes, most first
 function tallyOf(votes) {
   const by = new Map()
-  for (const v of votes) by.set(v.shop, [...(by.get(v.shop) || []), v.voter])
-  return [...by].map(([shop, voters]) => ({ shop, voters })).sort((a, b) => b.voters.length - a.voters.length)
-}
-
-function VoteBoard({ votes, ladies }) {
-  // notifications carry real names; the page shows nicknames
-  const shown = (voter) => ladies.find((l) => l.realName === voter)?.nickname ?? voter
-  const tally = tallyOf(votes.map((v) => ({ ...v, voter: shown(v.voter) })))
-  const max = tally[0]?.voters.length || 1
-  return (
-    <div className="vote-card reveal">
-      <p className="vote-title">Bảng vote</p>
-      {tally.length === 0 ? (
-        <p className="vote-hint">Chưa ai vote, mở hàng đi nào!</p>
-      ) : (
-        <ol className="vote-list">
-          {tally.map((t, i) => (
-            <li key={t.shop}>
-              <div className="vote-head">
-                <span>{i === 0 && t.voters.length > (tally[1]?.voters.length ?? 0) ? '👑 ' : ''}{t.shop}</span>
-                <b>{t.voters.length}</b>
-              </div>
-              <div className="vote-bar"><span style={{ width: `${(t.voters.length / max) * 100}%` }} /></div>
-              <p className="vote-who">{t.voters.join(', ')}</p>
-            </li>
-          ))}
-        </ol>
-      )}
-    </div>
-  )
+  for (const v of votes) by.set(v.shop, (by.get(v.shop) || 0) + 1)
+  return [...by].map(([shop, count]) => ({ shop, count })).sort((a, b) => b.count - a.count)
 }
 
 export default function DrinkMenu({ ladies }) {
-  const [votes, refreshVotes] = useVotes()
   const [who, setWho] = useState(null) // lady id, or 'other'
   const [otherName, setOtherName] = useState('')
   const [shopId, setShopId] = useState(null) // shop id, or 'other'
@@ -160,9 +122,9 @@ export default function DrinkMenu({ ladies }) {
     setStatus('sending')
     try {
       // tally including this vote, so the notification says who's winning
-      const others = votes.filter((v) => v.voter !== realName)
+      const others = (await fetchVotes()).filter((v) => v.voter !== realName)
       const lead = tallyOf([...others, { voter: realName, shop: shopName }])
-        .map((t) => `${t.shop} ${t.voters.length}`).join(' · ')
+        .map((t) => `${t.shop} ${t.count}`).join(' · ')
       const res = await fetch('https://ntfy.sh/', {
         method: 'POST',
         body: JSON.stringify({
@@ -174,7 +136,6 @@ export default function DrinkMenu({ ladies }) {
       })
       if (!res.ok) throw new Error(res.status)
       setStatus('sent')
-      refreshVotes()
     } catch {
       fallback()
     }
@@ -272,7 +233,7 @@ export default function DrinkMenu({ ladies }) {
           {status === 'sent' ? (
             <div className="order-done" role="status">
               <Sparkle size={30} />
-              <p>Đã vote & gửi order! Xem bảng vote nha ♥</p>
+              <p>Đã vote & gửi order! Kết quả sẽ được công bố sau nha ♥</p>
               <button type="button" className="btn-ghost" onClick={reset}>Đổi món / đổi quán</button>
             </div>
           ) : status === 'fallback' ? (
@@ -288,9 +249,6 @@ export default function DrinkMenu({ ladies }) {
           )}
         </div>
 
-        <div className="side-col">
-          <VoteBoard votes={votes} ladies={ladies} />
-        </div>
       </div>
     </section>
   )
