@@ -980,20 +980,6 @@ a { color: inherit; }
   text-align: left;
 }
 .order-card { flex: 1 1 560px; max-width: 720px; min-width: 0; padding: 22px 22px 26px; }
-.side-col { flex: 0 1 280px; display: flex; flex-direction: column; gap: 24px; min-width: 0; }
-.vote-card { padding: 20px; text-align: center; }
-.vote-card {
-  background: var(--paper); border: 2.5px solid var(--ink); border-radius: 18px 24px 16px 22px;
-  box-shadow: 5px 6px 0 rgba(74, 44, 37, 0.18); transform: rotate(-1deg);
-}
-.vote-card.reveal { opacity: 0; translate: 0 24px; transition: opacity 0.7s, translate 0.7s; }
-.vote-card.reveal.in { opacity: 1; translate: 0 0; }
-.vote-list { list-style: none; margin: 0; padding: 0; text-align: left; display: grid; gap: 12px; }
-.vote-head { display: flex; justify-content: space-between; gap: 8px; font-weight: 600; color: var(--ink); }
-.vote-head b { font-size: 18px; color: #c8474d; }
-.vote-bar { height: 10px; margin-top: 4px; background: #f3e6dc; border-radius: 999px; overflow: hidden; }
-.vote-bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--rose), #c8474d); border-radius: inherit; transition: width 0.6s; }
-.vote-who { margin: 4px 0 0; font-size: 12.5px; opacity: 0.8; }
 .order-card.reveal { opacity: 0; translate: 0 24px; transition: opacity 0.7s, translate 0.7s; }
 .order-card.reveal.in { opacity: 1; translate: 0 0; }
 .step-title { margin: 18px 0 10px; font-weight: 600; color: var(--ink); }
@@ -1057,14 +1043,10 @@ a { color: inherit; }
 .order-done p { margin: 6px 0; color: var(--ink); }
 .order-text { margin: 8px 0; padding: 10px; text-align: left; white-space: pre-wrap; font: inherit; font-size: 14px; background: #fff; border-radius: 10px; }
 
-.vote-title { margin: 0 0 12px; font-family: var(--font-script); font-size: 30px; color: var(--ink); line-height: 1.1; }
-.vote-hint { margin: 10px 0 4px; font-size: 14px; }
 
 @media (max-width: 640px) {
   .order-card { padding: 18px 14px 20px; }
   .drink-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .vote-card { transform: none; }
-  .side-col { flex-basis: 100%; }
 }
 
 /* ---------- Ambient ---------- */
