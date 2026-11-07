@@ -11,8 +11,6 @@ export const orderConfig = {
 }
 
 // The milk-tea shops the girls can pick from.
-// - menu (optional): list of { name, desc, price } (price in thousand đồng, 35 → 35k).
-//   Without a menu she just types the drink name.
 // - color tints the shop's little cup.
 export const shops = [
   { id: 'laang-traa', name: 'Laang Traa', tag: 'Một ly là vui', color: '#9cc47a' },

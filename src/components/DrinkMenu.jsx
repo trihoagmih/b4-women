@@ -77,8 +77,6 @@ export default function DrinkMenu({ ladies }) {
   const [otherName, setOtherName] = useState('')
   const [shopId, setShopId] = useState(null) // shop id, or 'other'
   const [otherShop, setOtherShop] = useState('')
-  const [drinkIdx, setDrinkIdx] = useState(null) // index into the shop's menu
-  const [typedDrink, setTypedDrink] = useState('')
   const [size, setSize] = useState('M')
   const [sugar, setSugar] = useState('50%')
   const [ice, setIce] = useState('Bình thường')
@@ -90,25 +88,16 @@ export default function DrinkMenu({ ladies }) {
   const realName = who === 'other' ? name : lady?.realName || name // what the notification says
   const shop = shops.find((s) => s.id === shopId)
   const shopName = shopId === 'other' ? otherShop.trim() : shop?.name
-  const menu = shop?.menu
-  const picked = menu?.[drinkIdx]
-  const drinkName = menu ? picked?.name : typedDrink.trim()
-  const ready = Boolean(name && shopName && drinkName)
+  const ready = Boolean(name && shopName)
 
   const orderText = (by) => [
       `${by} order:`,
       `Quán: ${shopName}`,
-      `${drinkName} (${size})${picked?.price ? ` ~${picked.price}k` : ''}`,
-      `Đường ${sugar} · ${ice}`,
+      `Size ${size} · Đường ${sugar} · ${ice}`,
       note.trim() && `Ghi chú: ${note.trim()}`,
     ].filter(Boolean).join('\n')
   // the copy-and-paste fallback is shown on the page, so it keeps the nickname
   const message = ready ? orderText(name) : ''
-
-  function pickShop(id) {
-    setShopId(id)
-    setDrinkIdx(null)
-  }
 
   async function fallback() {
     try { await navigator.clipboard.writeText(message) } catch { /* shown on screen anyway */ }
@@ -142,8 +131,6 @@ export default function DrinkMenu({ ladies }) {
   }
 
   function reset() {
-    setDrinkIdx(null)
-    setTypedDrink('')
     setNote('')
     setStatus('idle')
   }
@@ -184,14 +171,14 @@ export default function DrinkMenu({ ladies }) {
           <div className="drink-grid">
             {shops.map((sh) => (
               <button key={sh.id} type="button" className={`drink ${shopId === sh.id ? 'on' : ''}`}
-                onClick={() => pickShop(sh.id)} aria-pressed={shopId === sh.id}>
+                onClick={() => setShopId(sh.id)} aria-pressed={shopId === sh.id}>
                 <Cup color={sh.color} size={52} />
                 <span className="drink-name">{sh.name}</span>
                 <span className="drink-desc">{sh.tag}</span>
               </button>
             ))}
             <button type="button" className={`drink ${shopId === 'other' ? 'on' : ''}`}
-              onClick={() => pickShop('other')} aria-pressed={shopId === 'other'}>
+              onClick={() => setShopId('other')} aria-pressed={shopId === 'other'}>
               <Cup color="#ead0a6" size={52} />
               <span className="drink-name">Quán khác</span>
               <span className="drink-desc">Tự ghi tên quán</span>
@@ -202,39 +189,18 @@ export default function DrinkMenu({ ladies }) {
               onChange={(e) => setOtherShop(e.target.value)} maxLength={60} />
           )}
 
-          {shopId && (
-            <>
-              <p className="step-title"><b>3.</b> Uống món gì?</p>
-              {menu ? (
-                <div className="drink-grid">
-                  {menu.map((d, i) => (
-                    <button key={d.name} type="button" className={`drink ${drinkIdx === i ? 'on' : ''}`}
-                      onClick={() => setDrinkIdx(i)} aria-pressed={drinkIdx === i}>
-                      <span className="drink-name">{d.name}</span>
-                      {d.desc && <span className="drink-desc">{d.desc}</span>}
-                      {d.price ? <span className="drink-price">{d.price}k</span> : null}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <input className="text-in" placeholder="Gõ tên món, vd: Ô Long Nhài Sữa" value={typedDrink}
-                  onChange={(e) => setTypedDrink(e.target.value)} maxLength={80} />
-              )}
-            </>
-          )}
-
-          <p className="step-title"><b>{shopId ? 4 : 3}.</b> Tuỳ chỉnh xíu</p>
+          <p className="step-title"><b>3.</b> Tuỳ chỉnh xíu</p>
           <Chips label="Size" options={sizes} value={size} onChange={setSize} />
           <Chips label="Đường" options={sugarLevels} value={sugar} onChange={setSugar} />
           <Chips label="Đá" options={iceLevels} value={ice} onChange={setIce} />
-          <textarea className="text-in" rows={2} placeholder="Thêm topping, ghi chú… (không bắt buộc)"
+          <textarea className="text-in" rows={2} placeholder="Thèm món gì, topping hay ghi chú… (không bắt buộc)"
             value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} />
 
           {status === 'sent' ? (
             <div className="order-done" role="status">
               <Sparkle size={30} />
               <p>Đã vote & gửi order! Kết quả sẽ được công bố sau nha ♥</p>
-              <button type="button" className="btn-ghost" onClick={reset}>Đổi món / đổi quán</button>
+              <button type="button" className="btn-ghost" onClick={reset}>Đổi quán / vote lại</button>
             </div>
           ) : status === 'fallback' ? (
             <div className="order-done" role="status">
@@ -244,7 +210,7 @@ export default function DrinkMenu({ ladies }) {
             </div>
           ) : (
             <button type="button" className="btn-send" disabled={!ready || status === 'sending'} onClick={send}>
-              {status === 'sending' ? 'Đang gửi…' : ready ? 'Gửi order 💌' : 'Chọn tên, quán & món đã nha'}
+              {status === 'sending' ? 'Đang gửi…' : ready ? 'Gửi order 💌' : 'Chọn tên & quán đã nha'}
             </button>
           )}
         </div>
