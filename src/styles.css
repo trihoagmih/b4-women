@@ -1041,9 +1041,28 @@ a { color: inherit; }
 .order-done p { margin: 6px 0; color: var(--ink); }
 .order-text { margin: 8px 0; padding: 10px; text-align: left; white-space: pre-wrap; font: inherit; font-size: 14px; background: #fff; border-radius: 10px; }
 
+/* first-visit prank: Phê La flips over to Mixue */
+.prank { flex-basis: 520px; }
+.prank-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 200px)); gap: 16px; justify-content: center; margin-top: 8px; }
+.prank-card { padding: 0; border: 0; background: none; perspective: 800px; transition: opacity 0.4s; }
+.prank-card:disabled { cursor: default; }
+.prank-card.faded { opacity: 0.35; }
+.prank-inner { position: relative; display: grid; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(.3, 1.3, .5, 1); }
+.prank-card.flipped .prank-inner { transform: rotateY(180deg); }
+.prank-face { grid-area: 1 / 1; padding: 20px 8px 16px; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.prank-back { transform: rotateY(180deg); border-color: var(--ink); background: #fff1f3; box-shadow: 3px 3px 0 #e8383d; }
+.prank-back .drink-name { font-size: 20px; color: #c8202a; }
+.prank-card .prank-face.drink:hover { transform: none; }
+.prank-card .prank-back.drink, .prank-card .prank-back.drink:hover { transform: rotateY(180deg); }
+.prank-card:not(:disabled):hover { transform: translateY(-3px) rotate(-1deg); }
+.prank-card { transition: opacity 0.4s, transform 0.2s; }
+.prank-joke { margin-top: 20px; text-align: center; animation: thanks-pop 0.5s cubic-bezier(.3, 1.4, .5, 1); }
+.prank-joke p { margin: 4px 0; color: var(--ink); }
+.prank-joke-title { font-family: var(--font-script); font-size: clamp(32px, 7vw, 44px); line-height: 1.2; }
 
 @media (max-width: 640px) {
   .order-card { padding: 18px 14px 20px; }
+  .prank-grid { gap: 10px; }
   .drink-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
 }
 
