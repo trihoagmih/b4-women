@@ -54,7 +54,7 @@ function tallyOf(votes) {
   return [...by].map(([shop, count]) => ({ shop, count })).sort((a, b) => b.count - a.count)
 }
 
-// A little prank shown the first time: "Phê La or plain water?" — whichever
+// A little prank shown the first time: "Phê La or Revive?" — whichever
 // card she picks flips over to say Mixue, then the real vote appears.
 const PRANK_KEY = 'b4-prank-seen'
 function prankSeen() {
@@ -62,7 +62,7 @@ function prankSeen() {
 }
 const PRANK_CHOICES = [
   { id: 'phela', name: 'Phê La', tag: 'Ô long đặc sản', color: '#b5835a' },
-  { id: 'water', name: 'Nước lọc', tag: 'Healthy, tiết kiệm', color: '#d4ecf5' },
+  { id: 'revive', name: 'Revive', tag: 'Bù khoáng sau trận', color: '#f3e27a' },
 ]
 
 function Prank({ onDone }) {
