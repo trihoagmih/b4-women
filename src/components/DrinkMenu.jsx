@@ -54,7 +54,62 @@ function tallyOf(votes) {
   return [...by].map(([shop, count]) => ({ shop, count })).sort((a, b) => b.count - a.count)
 }
 
+// A little prank shown the first time: "Phê La or plain water?" — whichever
+// card she picks flips over to say Mixue, then the real vote appears.
+const PRANK_KEY = 'b4-prank-seen'
+function prankSeen() {
+  try { return localStorage.getItem(PRANK_KEY) === '1' } catch { return false }
+}
+const PRANK_CHOICES = [
+  { id: 'phela', name: 'Phê La', tag: 'Ô long đặc sản', color: '#b5835a' },
+  { id: 'water', name: 'Nước lọc', tag: 'Healthy, tiết kiệm', color: '#d4ecf5' },
+]
+
+function Prank({ onDone }) {
+  const [picked, setPicked] = useState(null)
+  const [joke, setJoke] = useState(false)
+
+  function pick(id) {
+    if (picked) return
+    setPicked(id)
+    setTimeout(() => setJoke(true), 1400)
+  }
+
+  return (
+    <div className="order-card prank reveal in">
+      <p className="step-title"><b>1.</b> Hôm nay B4 bao, chọn 1 trong 2 nha:</p>
+      <div className="prank-grid">
+        {PRANK_CHOICES.map((c) => (
+          <button key={c.id} type="button" className={`prank-card ${picked === c.id ? 'flipped' : ''} ${picked && picked !== c.id ? 'faded' : ''}`}
+            onClick={() => pick(c.id)} disabled={Boolean(picked)} aria-pressed={picked === c.id}>
+            <span className="prank-inner">
+              <span className="prank-face drink">
+                <Cup color={c.color} size={64} />
+                <span className="drink-name">{c.name}</span>
+                <span className="drink-desc">{c.tag}</span>
+              </span>
+              <span className="prank-face prank-back drink" aria-hidden={picked !== c.id}>
+                <Cup color="#e8383d" size={64} />
+                <span className="drink-name">Mixue</span>
+                <span className="drink-desc">Tuyết vương giá rẻ 🍦</span>
+              </span>
+            </span>
+          </button>
+        ))}
+      </div>
+      {joke && (
+        <div className="prank-joke" role="status">
+          <p className="prank-joke-title">Đùa thôi 🤭</p>
+          <p>Ai lại bao Mixue thật. Giờ chọn quán thật đi nè!</p>
+          <button type="button" className="btn-send" onClick={onDone}>Vote thật nè 💌</button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function DrinkMenu({ ladies }) {
+  const [prankDone, setPrankDone] = useState(prankSeen)
   const [who, setWho] = useState(null) // lady id, or 'other'
   const [otherName, setOtherName] = useState('')
   const [shopId, setShopId] = useState(null) // shop id, or 'other'
@@ -107,6 +162,11 @@ export default function DrinkMenu({ ladies }) {
     setStatus('idle')
   }
 
+  function finishPrank() {
+    try { localStorage.setItem(PRANK_KEY, '1') } catch { /* show it again next time, no harm */ }
+    setPrankDone(true)
+  }
+
   return (
     <section id="drinks" className="drinks">
       <h2 className="section-title reveal">
@@ -118,7 +178,9 @@ export default function DrinkMenu({ ladies }) {
       </p>
 
       <div className="drinks-layout">
-        {status === 'sent' ? (
+        {!prankDone ? (
+          <Prank onDone={finishPrank} />
+        ) : status === 'sent' ? (
           <div className="order-card thanks in" role="status">
             <div className="thanks-art" aria-hidden="true">
               <Sparkle size={34} />
